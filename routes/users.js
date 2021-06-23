@@ -3,12 +3,49 @@ var router = express.Router();
 const passport = require('passport');
 const Users = require('../models/users');
 const authenticate = require('../authenticate');
+const { isValidObjectId } = require('mongoose');
 
-/* GET users listing. */
-router.get('/', function (req, res, next) {
-  res.send('respond with a resource');
-});
+// GET user(s), need Admin permission, accept query _id
+router.get(
+  '/',
+  authenticate.verifyUser,
+  authenticate.verifyAdmin,
+  (req, res, next) => {
+    if (!isValidObjectId(req.query._id))
+      return res.status(400).json({ success: false, msg: 'Id invalid!' });
 
+    Users.find(req.query)
+      .then(
+        (users) => {
+          return res.status(200).json({ success: true, data: users });
+        },
+        (err) => next(err)
+      )
+      .catch((err) => next(err));
+  }
+);
+
+// GET/DELETE specific user with id, need Admin permission
+router.delete(
+  '/:userId',
+  authenticate.verifyUser,
+  authenticate.verifyAdmin,
+  (req, res, next) => {
+    if (!isValidObjectId(req.params.userId))
+      return res.status(400).json({ success: false, msg: 'Id invalid!' });
+
+    Users.findByIdAndDelete(req.params.userId)
+      .then(
+        (response) => {
+          res.status(200).json(response);
+        },
+        (err) => next(err)
+      )
+      .catch((err) => next(err));
+  }
+);
+
+// Register user
 router.post('/signup', (req, res, next) => {
   Users.register(
     new Users({ username: req.body.username }),
@@ -25,6 +62,7 @@ router.post('/signup', (req, res, next) => {
   );
 });
 
+// Login and return JWT token
 router.post('/login', (req, res, next) => {
   passport.authenticate('local', (err, user, info) => {
     if (err) return next(err);
@@ -53,18 +91,19 @@ router.post('/login', (req, res, next) => {
   })(req, res, next);
 });
 
-router.get('/logout', (req, res) => {
-  if (req.session) {
-    req.session.destroy();
-    res.clearCookie('session-id');
-    res.redirect('/');
-  } else {
-    var err = new Error('You are not logged in!');
-    err.status = 403;
-    next(err);
-  }
+// Change password
+router.post('/change-password', authenticate.verifyUser, (req, res, next) => {
+  Users.changePassword(req.body.oldPassword, req.body.newPassword)
+    .then(
+      (user) => {
+        console.log(user);
+      },
+      (err) => next(err)
+    )
+    .catch((err) => next(err));
 });
 
+// Check JWT
 router.get('/checkJWT', (req, res, next) => {
   passport.authenticate('jwt', { session: false }, (err, user, info) => {
     if (err) {

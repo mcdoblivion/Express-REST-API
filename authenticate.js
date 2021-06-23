@@ -7,7 +7,7 @@ const Users = require('./models/users');
 
 const config = require('./config');
 
-passport.use(new LocalStrategy(Users.authenticate()));
+exports.local = passport.use(new LocalStrategy(Users.authenticate()));
 passport.serializeUser(Users.serializeUser());
 passport.deserializeUser(Users.deserializeUser());
 
