@@ -1,5 +1,6 @@
 const express = require('express');
 const productsRouter = express.Router();
+const authenticate = require('../authenticate');
 
 const Products = require('../models/products');
 
@@ -16,7 +17,7 @@ productsRouter
       )
       .catch((err) => next(err));
   })
-  .post((req, res, next) => {
+  .post(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Products.create(req.body)
       .then(
         (product) => {
@@ -27,16 +28,20 @@ productsRouter
       )
       .catch((err) => next(err));
   })
-  .delete((req, res, next) => {
-    Products.deleteMany({})
-      .then(
-        (response) => {
-          res.status(200).json(response);
-        },
-        (err) => next(err)
-      )
-      .catch((err) => next(err));
-  });
+  .delete(
+    authenticate.verifyUser,
+    authenticate.verifyAdmin,
+    (req, res, next) => {
+      Products.deleteMany({})
+        .then(
+          (response) => {
+            res.status(200).json(response);
+          },
+          (err) => next(err)
+        )
+        .catch((err) => next(err));
+    }
+  );
 
 // /products/:productId
 productsRouter
@@ -60,7 +65,7 @@ productsRouter
       )
       .catch((err) => next(err));
   })
-  .put((req, res, next) => {
+  .put(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Products.findByIdAndUpdate(
       req.params.productId,
       { $set: req.body },
@@ -78,16 +83,20 @@ productsRouter
       })
       .catch((err) => next(err));
   })
-  .delete((req, res, next) => {
-    Products.findByIdAndDelete(req.params.productId)
-      .then(
-        (response) => {
-          res.status(200).json(response);
-        },
-        (err) => next(err)
-      )
-      .catch((err) => next(err));
-  });
+  .delete(
+    authenticate.verifyUser,
+    authenticate.verifyAdmin,
+    (req, res, next) => {
+      Products.findByIdAndDelete(req.params.productId)
+        .then(
+          (response) => {
+            res.status(200).json(response);
+          },
+          (err) => next(err)
+        )
+        .catch((err) => next(err));
+    }
+  );
 
 // /products/:productId/comments
 productsRouter
@@ -106,7 +115,7 @@ productsRouter
       })
       .catch((err) => next(err));
   })
-  .post((req, res, next) => {
+  .post(authenticate.verifyUser, (req, res, next) => {
     Products.findById(req.params.productId)
       .then((product) => {
         if (!product)
@@ -126,29 +135,35 @@ productsRouter
       })
       .catch((err) => next(err));
   })
-  .delete((req, res, next) => {
-    Products.findById(req.params.productId)
-      .then((product) => {
-        if (!product)
-          return res.status(404).json({
-            success: false,
-            msg:
-              'The product with id ' + req.params.productId + ' is not exist!',
-          });
+  .delete(
+    authenticate.verifyUser,
+    authenticate.verifyAdmin,
+    (req, res, next) => {
+      Products.findById(req.params.productId)
+        .then((product) => {
+          if (!product)
+            return res.status(404).json({
+              success: false,
+              msg:
+                'The product with id ' +
+                req.params.productId +
+                ' is not exist!',
+            });
 
-        product.comments = [];
-        product
-          .save()
-          .then(
-            (product) => {
-              res.status(200).json(product);
-            },
-            (err) => next(err)
-          )
-          .catch((err) => next(err));
-      })
-      .catch((err) => next(err));
-  });
+          product.comments = [];
+          product
+            .save()
+            .then(
+              (product) => {
+                res.status(200).json(product);
+              },
+              (err) => next(err)
+            )
+            .catch((err) => next(err));
+        })
+        .catch((err) => next(err));
+    }
+  );
 
 // /products/:productId/comments/:commentId
 productsRouter
@@ -175,7 +190,7 @@ productsRouter
       })
       .catch((err) => next(err));
   })
-  .put((req, res, next) => {
+  .put(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Products.findById(req.params.productId)
       .then((product) => {
         if (!product)
@@ -205,33 +220,41 @@ productsRouter
       })
       .catch((err) => next(err));
   })
-  .delete((req, res, next) => {
-    Products.findById(req.params.productId)
-      .then((product) => {
-        if (!product)
-          return res.status(404).json({
-            success: false,
-            msg:
-              'The product with id ' + req.params.productId + ' is not exist!',
-          });
+  .delete(
+    authenticate.verifyUser,
+    authenticate.verifyAdmin,
+    (req, res, next) => {
+      Products.findById(req.params.productId)
+        .then((product) => {
+          if (!product)
+            return res.status(404).json({
+              success: false,
+              msg:
+                'The product with id ' +
+                req.params.productId +
+                ' is not exist!',
+            });
 
-        let comment = product.comments.id(req.params.commentId);
-        if (!comment)
-          return res.status(404).json({
-            success: false,
-            msg:
-              'The comment with id ' + req.params.commentId + ' is not exist!',
-          });
+          let comment = product.comments.id(req.params.commentId);
+          if (!comment)
+            return res.status(404).json({
+              success: false,
+              msg:
+                'The comment with id ' +
+                req.params.commentId +
+                ' is not exist!',
+            });
 
-        product.comments.id(req.params.commentId).remove();
-        product.save().then(
-          (product) => {
-            res.status(200).json(product);
-          },
-          (err) => next(err)
-        );
-      })
-      .catch((err) => next(err));
-  });
+          product.comments.id(req.params.commentId).remove();
+          product.save().then(
+            (product) => {
+              res.status(200).json(product);
+            },
+            (err) => next(err)
+          );
+        })
+        .catch((err) => next(err));
+    }
+  );
 
 module.exports = productsRouter;
