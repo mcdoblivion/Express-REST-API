@@ -9,9 +9,13 @@ productsRouter
   .route('/')
   .get((req, res, next) => {
     Products.find({})
+      .populate('comments.author', '-_id -__v -phoneNumber')
       .then(
         (products) => {
-          res.status(200).json({ success: true, data: products });
+          res.status(200).json({
+            success: true,
+            data: products,
+          });
         },
         (err) => next(err)
       )
@@ -48,6 +52,7 @@ productsRouter
   .route('/:productId')
   .get((req, res, next) => {
     Products.findById(req.params.productId)
+      .populate('comments.author', '-_id -__v -phoneNumber')
       .then(
         (product) => {
           if (!product)
@@ -71,6 +76,7 @@ productsRouter
       { $set: req.body },
       { new: true }
     )
+      .populate('comments.author', '-_id -__v -phoneNumber')
       .then((product) => {
         if (!product)
           return res.status(404).json({
@@ -103,6 +109,7 @@ productsRouter
   .route('/:productId/comments')
   .get((req, res, next) => {
     Products.findById(req.params.productId)
+      .populate('comments.author', '-_id -__v -phoneNumber')
       .then((product) => {
         if (!product)
           return res.status(404).json({
@@ -125,51 +132,32 @@ productsRouter
               'The product with id ' + req.params.productId + ' is not exist!',
           });
 
+        req.body.author = req.user._id;
         product.comments.push(req.body);
+
         product.save().then(
           (product) => {
-            res.status(201).json(product);
+            product.populate(
+              'comments.author',
+              '-_id -__v -phoneNumber',
+              (err, product) => {
+                if (err) next(err);
+                res.status(201).json(product);
+              }
+            );
           },
           (err) => next(err)
         );
       })
       .catch((err) => next(err));
-  })
-  .delete(
-    authenticate.verifyUser,
-    authenticate.verifyAdmin,
-    (req, res, next) => {
-      Products.findById(req.params.productId)
-        .then((product) => {
-          if (!product)
-            return res.status(404).json({
-              success: false,
-              msg:
-                'The product with id ' +
-                req.params.productId +
-                ' is not exist!',
-            });
-
-          product.comments = [];
-          product
-            .save()
-            .then(
-              (product) => {
-                res.status(200).json(product);
-              },
-              (err) => next(err)
-            )
-            .catch((err) => next(err));
-        })
-        .catch((err) => next(err));
-    }
-  );
+  });
 
 // /products/:productId/comments/:commentId
 productsRouter
   .route('/:productId/comments/:commentId')
   .get((req, res, next) => {
     Products.findById(req.params.productId)
+      .populate('comments.author', '-_id -__v -phoneNumber')
       .then((product) => {
         if (!product)
           return res.status(404).json({
@@ -190,8 +178,48 @@ productsRouter
       })
       .catch((err) => next(err));
   })
-  .put(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+  .put(authenticate.verifyUser, (req, res, next) => {
     Products.findById(req.params.productId)
+      .populate('comments.author', '-_id -__v -phoneNumber')
+      .then((product) => {
+        if (!product)
+          return res.status(404).json({
+            success: false,
+            msg:
+              'The product with id ' + req.params.productId + ' is not exist!',
+          });
+
+        let comment = product.comments.id(req.params.commentId);
+        if (!comment) {
+          return res.status(404).json({
+            success: false,
+            msg:
+              'The comment with id ' + req.params.commentId + ' is not exist!',
+          });
+        }
+
+        if (comment.author !== req.user._id) {
+          return res.status(403).json({
+            success: false,
+            msg: 'Can only edit own comment!',
+          });
+        }
+
+        if (req.body.rating) comment.rating = req.body.rating;
+        if (req.body.comment) comment.comment = req.body.comment;
+
+        product.save().then(
+          (product) => {
+            res.status(200).json(product);
+          },
+          (err) => next(err)
+        );
+      })
+      .catch((err) => next(err));
+  })
+  .delete(authenticate.verifyUser, (req, res, next) => {
+    Products.findById(req.params.productId)
+      .populate('comments.author', '-_id -__v -phoneNumber')
       .then((product) => {
         if (!product)
           return res.status(404).json({
@@ -208,9 +236,14 @@ productsRouter
               'The comment with id ' + req.params.commentId + ' is not exist!',
           });
 
-        if (req.body.rating) comment.rating = req.body.rating;
-        if (req.body.comment) comment.comment = req.body.comment;
+        if (comment.author._id.toString() !== req.user._id.toString()) {
+          return res.status(403).json({
+            success: false,
+            msg: 'Can only delete own comment!',
+          });
+        }
 
+        product.comments.id(req.params.commentId).remove();
         product.save().then(
           (product) => {
             res.status(200).json(product);
@@ -219,42 +252,6 @@ productsRouter
         );
       })
       .catch((err) => next(err));
-  })
-  .delete(
-    authenticate.verifyUser,
-    authenticate.verifyAdmin,
-    (req, res, next) => {
-      Products.findById(req.params.productId)
-        .then((product) => {
-          if (!product)
-            return res.status(404).json({
-              success: false,
-              msg:
-                'The product with id ' +
-                req.params.productId +
-                ' is not exist!',
-            });
-
-          let comment = product.comments.id(req.params.commentId);
-          if (!comment)
-            return res.status(404).json({
-              success: false,
-              msg:
-                'The comment with id ' +
-                req.params.commentId +
-                ' is not exist!',
-            });
-
-          product.comments.id(req.params.commentId).remove();
-          product.save().then(
-            (product) => {
-              res.status(200).json(product);
-            },
-            (err) => next(err)
-          );
-        })
-        .catch((err) => next(err));
-    }
-  );
+  });
 
 module.exports = productsRouter;

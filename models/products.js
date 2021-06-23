@@ -15,6 +15,10 @@ const commentSchema = new Schema(
       type: String,
       required: true,
     },
+    author: {
+      type: mongoose.Types.ObjectId,
+      ref: 'Users',
+    },
   },
   { timestamps: true }
 );

@@ -47,19 +47,20 @@ router.delete(
 
 // Register user
 router.post('/signup', (req, res, next) => {
-  Users.register(
-    new Users({ username: req.body.username }),
-    req.body.password,
-    (err, user) => {
-      if (err) return res.status(500).json({ err: err });
+  Users.register(new Users({ ...req.body }), req.body.password, (err, user) => {
+    if (err) return res.status(500).json({ err: err });
 
-      passport.authenticate('local')(req, res, () => {
-        res
-          .status(200)
-          .json({ success: true, msg: 'Registration successfully!' });
-      });
-    }
-  );
+    user.save().then(
+      () => {
+        passport.authenticate('local')(req, res, () => {
+          res
+            .status(200)
+            .json({ success: true, msg: 'Registration successfully!' });
+        });
+      },
+      (err) => next(err)
+    );
+  });
 });
 
 // Login and return JWT token
