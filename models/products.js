@@ -30,6 +30,11 @@ const productSchema = new Schema(
       required: true,
       unique: true,
     },
+    seller: {
+      type: mongoose.Types.ObjectId,
+      ref: 'Users',
+      required: true,
+    },
     description: {
       type: String,
       required: true,
@@ -46,6 +51,11 @@ const productSchema = new Schema(
       type: Currency,
       min: 0,
       required: true,
+    },
+    numberInStock: {
+      type: Number,
+      required: true,
+      min: 1,
     },
     comments: [commentSchema],
   },
