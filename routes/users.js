@@ -25,7 +25,7 @@ router.get(
   }
 );
 
-// GET/DELETE specific user with id, need Admin permission
+// DELETE specific user with id, need Admin permission
 router.delete(
   '/:userId',
   authenticate.verifyUser,
@@ -36,8 +36,10 @@ router.delete(
 
     Users.findByIdAndDelete(req.params.userId)
       .then(
-        (response) => {
-          res.status(200).json(response);
+        () => {
+          res
+            .status(200)
+            .json({ success: true, msg: 'Deleted user successfully!' });
         },
         (err) => next(err)
       )
@@ -94,10 +96,17 @@ router.post('/login', (req, res, next) => {
 
 // Change password
 router.post('/change-password', authenticate.verifyUser, (req, res, next) => {
-  Users.changePassword(req.body.oldPassword, req.body.newPassword)
+  Users.findById(req.user._id)
     .then(
       (user) => {
-        console.log(user);
+        user.changePassword(req.body.oldPassword, req.body.newPassword).then(
+          () => {
+            return res
+              .status(200)
+              .json({ success: true, msg: 'Changed password successfully!' });
+          },
+          (err) => next(err)
+        );
       },
       (err) => next(err)
     )

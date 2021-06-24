@@ -10,8 +10,8 @@ productsRouter.get(
   authenticate.verifyUser,
   (req, res, next) => {
     Products.find({ seller: req.user._id })
-      .populate('comments.author', '-_id -__v -phoneNumber -admin')
-      .populate('seller', '-_id -__v -phoneNumber -admin')
+      .populate('comments.author', '-_id -__v -phoneNumber -admin -address')
+      .populate('seller', '-_id -__v -phoneNumber -admin -address')
       .then(
         (products) => {
           res.status(200).json({
@@ -30,8 +30,8 @@ productsRouter
   .route('/')
   .get((req, res, next) => {
     Products.find(req.query)
-      .populate('comments.author', '-_id -__v -phoneNumber -admin')
-      .populate('seller', '-_id -__v -phoneNumber -admin')
+      .populate('comments.author', '-_id -__v -phoneNumber -admin -address')
+      .populate('seller', '-_id -__v -phoneNumber -admin -address')
       .then(
         (products) => {
           res.status(200).json({
@@ -74,8 +74,8 @@ productsRouter
   .route('/:productId')
   .get((req, res, next) => {
     Products.findById(req.params.productId)
-      .populate('comments.author', '-_id -__v -phoneNumber -admin')
-      .populate('seller', '-_id -__v -phoneNumber -admin')
+      .populate('comments.author', '-_id -__v -phoneNumber -admin -address')
+      .populate('seller', '-_id -__v -phoneNumber -admin -address')
       .then(
         (product) => {
           if (!product)
@@ -155,7 +155,7 @@ productsRouter
   .route('/:productId/comments')
   .get((req, res, next) => {
     Products.findById(req.params.productId)
-      .populate('comments.author', '-_id -__v -phoneNumber -admin')
+      .populate('comments.author', '-_id -__v -phoneNumber -admin -address')
       .then((product) => {
         if (!product)
           return res.status(404).json({
@@ -198,7 +198,7 @@ productsRouter
   .route('/:productId/comments/:commentId')
   .get((req, res, next) => {
     Products.findById(req.params.productId)
-      .populate('comments.author', '-_id -__v -phoneNumber -admin')
+      .populate('comments.author', '-_id -__v -phoneNumber -admin -address')
       .then((product) => {
         if (!product)
           return res.status(404).json({
