@@ -43,10 +43,12 @@ const productSchema = new Schema(
       type: String,
       required: true,
     },
-    image: {
-      type: String,
-      required: true,
-    },
+    images: [
+      {
+        type: String,
+        required: true,
+      },
+    ],
     price: {
       type: Currency,
       min: 0,

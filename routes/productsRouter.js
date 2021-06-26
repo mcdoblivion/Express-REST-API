@@ -1,6 +1,7 @@
 const express = require('express');
 const productsRouter = express.Router();
 const authenticate = require('../authenticate');
+const fs = require('fs');
 
 const Products = require('../models/products');
 
@@ -57,9 +58,16 @@ productsRouter
       .catch((err) => next(err));
   })
   .delete(authenticate.verifyUser, (req, res, next) => {
-    Products.deleteMany({ seller: req.user._id })
+    Products.find({ seller: req.user._id })
       .then(
-        () => {
+        (products) => {
+          products.forEach((product) => {
+            product.images.forEach((image) => {
+              fs.unlink(image, (err) => console.log(err));
+            });
+            product.remove();
+          });
+
           res
             .status(200)
             .json({ success: true, msg: 'Deleted all product successfully!' });
@@ -140,10 +148,15 @@ productsRouter
         }
 
         Products.findByIdAndDelete(req.params.productId).then(
-          () =>
-            res
+          (product) => {
+            product.images.forEach((image) => {
+              fs.unlink(image, (err) => console.log(err));
+            });
+
+            return res
               .status(200)
-              .json({ success: true, msg: 'Deleted product successfully!' }),
+              .json({ success: true, msg: 'Deleted product successfully!' });
+          },
           (err) => next(err)
         );
       })

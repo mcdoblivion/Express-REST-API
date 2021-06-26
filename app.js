@@ -13,6 +13,7 @@ var usersRouter = require('./routes/users');
 const productsRouter = require('./routes/productsRouter');
 const cartsRouter = require('./routes/cartsRouter');
 const ordersRouter = require('./routes/ordersRouter');
+const uploadRouter = require('./routes/uploadRouter');
 
 var app = express();
 
@@ -37,7 +38,7 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
 app.use(logger('dev'));
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -50,6 +51,7 @@ app.use('/users', usersRouter);
 app.use('/products', productsRouter);
 app.use('/carts', cartsRouter);
 app.use('/orders', ordersRouter);
+app.use('/upload-image', uploadRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
