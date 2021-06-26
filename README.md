@@ -1,5 +1,7 @@
 # Express-REST-API
 
+[Link to React client app](https://github.com/mcdoblivion/merchize-ecommerce) (updating)
+
 ## Latest update:
 
 #### Users routes:
@@ -33,6 +35,18 @@
 - GET / POST / DELETE /carts - lấy tất cả sản phẩm trong giỏ hàng / thêm sản phẩm vào giỏ hàng / xoá giỏ hàng của user đang đăng nhập
 
 - PUT / DELETE /carts/:productId - thay đổi số lượng / xoá sản phẩm có \_id = :productId trong giỏ hàng của user đang đăng nhập
+
+#### Orders routes
+
+- GET / POST /orders[?status=-1/0/1, sellOrder=true] - lấy tất cả thông tin đơn mua hoặc lấy theo trạng thái / thêm 1 đơn mua. Lấy thông tin đơn bán sử dụng thêm tham số sellOrder=true. Cần đăng nhập
+
+- GET /orders/:orderId - lấy thông tin đơn hàng có \_id=:orderId, không cần đăng nhập
+
+- PUT /orders/:orderId?operation=cancel/confirm - thay đổi trạng thái đơn hàng (huỷ/xác nhận). Cần đăng nhập
+
+#### Upload routes
+
+- POST /upload-image - tải ảnh lên server và nhận lại đường dẫn, dành cho người đăng sản phẩm
 
 ## Update bài tập 6: Tiếp tục từ phần 5, thêm phần quản trị users (thêm, sửa, xóa). Sau đó thêm phần login cho user để user có thể thêm sửa xóa sản phẩm.
 

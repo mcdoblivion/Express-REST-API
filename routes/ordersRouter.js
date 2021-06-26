@@ -8,7 +8,7 @@ const Carts = require('../models/carts');
 const Orders = require('../models/orders');
 const Products = require('../models/products');
 
-// /orders
+// /orders[?status=-1/0/1, sellOrder=true]
 ordersRouter
   .route('/')
   .get(authenticate.verifyUser, (req, res, next) => {
@@ -83,7 +83,7 @@ ordersRouter
       .catch((err) => next(err));
   });
 
-// /orders/:orderId?operation=cancel/confirm
+// /orders/:orderId[?operation=cancel/confirm]
 ordersRouter
   .route('/:orderId')
   .get((req, res, next) => {
