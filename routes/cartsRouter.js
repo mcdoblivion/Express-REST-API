@@ -2,6 +2,7 @@ const express = require('express');
 const cartsRouter = express.Router();
 const authenticate = require('../authenticate');
 const Carts = require('../models/carts');
+const Products = require('../models/products');
 
 cartsRouter.use(authenticate.verifyUser);
 
@@ -37,26 +38,57 @@ cartsRouter
             cart = new Carts({ user: req.user._id });
           }
 
-          const listProducts = req.body;
-          listProducts.forEach((products) => {
-            const existProduct = cart.products.find(
-              (product) => product.product == products.product
-            );
-            if (!existProduct) {
-              cart.products.push(products);
-            } else {
-              existProduct.quantity += products.quantity;
-            }
-          });
+          Products.find({})
+            .then(
+              (allProducts) => {
+                const listProducts = req.body;
+                const productsQuantityValid = listProducts.every((products) => {
+                  const numberInStock = allProducts.find(
+                    (product) =>
+                      product._id.toString() === products.product.toString()
+                  ).numberInStock;
 
-          cart.save((err, cart) => {
-            if (err) next(err);
+                  const existProduct = cart.products.find(
+                    (product) => product.product == products.product
+                  );
+                  if (!existProduct) {
+                    if (products.quantity > numberInStock) {
+                      return false;
+                    } else {
+                      cart.products.push(products);
+                      return true;
+                    }
+                  } else {
+                    if (
+                      existProduct.quantity + products.quantity >
+                      numberInStock
+                    ) {
+                      return false;
+                    } else {
+                      existProduct.quantity += products.quantity;
+                      return true;
+                    }
+                  }
+                });
 
-            cart.populate('user').populate('products.product', (err, cart) => {
-              if (err) next(err);
-              return res.status(200).json({ success: true, data: cart });
-            });
-          });
+                if (!productsQuantityValid) {
+                  return res.status(400).json({
+                    success: false,
+                    msg: 'Cart can not has more products than number in stock!',
+                  });
+                } else {
+                  cart.save((err, cart) => {
+                    if (err) next(err);
+                    return res.status(201).json({
+                      success: true,
+                      msg: 'Add products to cart successfully!',
+                    });
+                  });
+                }
+              },
+              (err) => next(err)
+            )
+            .catch((err) => next(err));
         },
         (err) => next(err)
       )

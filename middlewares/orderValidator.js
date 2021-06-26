@@ -11,6 +11,8 @@ exports.validateOrder = (req, res, next) => {
       if (jwt_payload.exp * 1000 > Date.now()) {
         Users.findById(jwt_payload._id).then(
           (user) => {
+            req.user = user;
+
             if (user) {
               req.body.customer = {
                 user: user._id,
@@ -82,6 +84,11 @@ exports.validateOrder = (req, res, next) => {
           },
           (err) => next(err)
         );
+      } else {
+        return res.status(401).json({
+          success: false,
+          msg: 'You are not authorized to do this operation!',
+        });
       }
     }
   } else {

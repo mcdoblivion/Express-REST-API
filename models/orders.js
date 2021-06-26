@@ -38,6 +38,7 @@ const orderSchema = new Schema(
     seller: {
       type: mongoose.Types.ObjectId,
       required: true,
+      ref: 'Users',
     },
     products: [productsSchema],
     status: {
