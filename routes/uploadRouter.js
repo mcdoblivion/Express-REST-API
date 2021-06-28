@@ -30,7 +30,7 @@ uploadRouter.post(
     res.status(201).json({
       success: true,
       msg: 'Upload image successfully to: ' + req.file.path,
-      path: 'public/images/' + req.file.filename,
+      path: '/images/' + req.file.filename,
     });
   }
 );

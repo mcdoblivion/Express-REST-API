@@ -14,6 +14,7 @@ const productsRouter = require('./routes/productsRouter');
 const cartsRouter = require('./routes/cartsRouter');
 const ordersRouter = require('./routes/ordersRouter');
 const uploadRouter = require('./routes/uploadRouter');
+const cors = require('./routes/cors');
 
 var app = express();
 
@@ -46,6 +47,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(passport.initialize());
 app.use(passport.session());
 
+app.use(cors.corsWithOptions);
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/products', productsRouter);
