@@ -92,7 +92,7 @@ module.exports.getOrderById = (req, res, next) => {
     .catch((err) => next(err));
 };
 
-module.exports.updateOrder = (req, res, next) => {
+module.exports.updateOrderStatus = (req, res, next) => {
   if (req.query.operation !== 'cancel' || req.query.operation !== 'confirm') {
     res
       .status(400)

@@ -34,7 +34,6 @@ productsRouter
 // /products/:productId/comments/:commentId
 productsRouter
   .route('/:productId/comments/:commentId')
-  .get(commentsController.getCommentById)
   .put(authenticate.verifyUser, commentsController.updateComment)
   .delete(authenticate.verifyUser, commentsController.deleteComment);
 

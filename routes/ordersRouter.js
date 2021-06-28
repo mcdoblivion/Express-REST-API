@@ -15,6 +15,6 @@ ordersRouter
 ordersRouter
   .route('/:orderId')
   .get(ordersController.getOrderById)
-  .put(authenticate.verifyUser, ordersController.updateOrder);
+  .put(authenticate.verifyUser, ordersController.updateOrderStatus);
 
 module.exports = ordersRouter;

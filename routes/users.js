@@ -29,12 +29,12 @@ router
   );
 
 // Register user
-router.post('/accounts', usersController.createUserAccount);
+router.post('/account', usersController.createUserAccount);
 
 // Login and return JWT token
-router.post('/accounts/create-jwt', usersController.createJwt);
+router.post('/account/create-jwt', usersController.createJwt);
 
 // Change password
-router.put('/accounts/change-password', authenticate.verifyUser);
+router.put('/account/change-password', authenticate.verifyUser);
 
 module.exports = router;
