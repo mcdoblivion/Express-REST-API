@@ -3,6 +3,8 @@ const productsRouter = express.Router();
 const productsController = require('../controllers/productsController');
 const commentsController = require('../controllers/commentsController');
 const authenticate = require('../authenticate');
+const productValidator = require('../middlewares/productValidator');
+const commentValidator = require('../middlewares/commentValidator');
 
 // GET /products/own-products
 productsRouter.get(
@@ -15,7 +17,11 @@ productsRouter.get(
 productsRouter
   .route('/')
   .get(productsController.getProducts)
-  .post(authenticate.verifyUser, productsController.createProduct)
+  .post(
+    authenticate.verifyUser,
+    productValidator.validateCreateProduct,
+    productsController.createProduct
+  )
   .delete(authenticate.verifyUser, productsController.deleteAllProducts);
 
 // /products/comments
@@ -25,19 +31,31 @@ productsRouter.get('/comments', commentsController.getAllCommentsAllProducts);
 productsRouter
   .route('/:productId')
   .get(productsController.getProductById)
-  .put(authenticate.verifyUser, productsController.updateProduct)
+  .put(
+    authenticate.verifyUser,
+    productValidator.validateUpdateProduct,
+    productsController.updateProduct
+  )
   .delete(authenticate.verifyUser, productsController.deleteProduct);
 
 // /products/:productId/comments
 productsRouter
   .route('/:productId/comments')
   .get(commentsController.getAllCommentsOneProduct)
-  .post(authenticate.verifyUser, commentsController.createComment);
+  .post(
+    authenticate.verifyUser,
+    commentValidator.validateCreateComment,
+    commentsController.createComment
+  );
 
 // /products/:productId/comments/:commentId
 productsRouter
   .route('/:productId/comments/:commentId')
-  .put(authenticate.verifyUser, commentsController.updateComment)
+  .put(
+    authenticate.verifyUser,
+    commentValidator.validateUpdateComment,
+    commentsController.updateComment
+  )
   .delete(authenticate.verifyUser, commentsController.deleteComment);
 
 module.exports = productsRouter;

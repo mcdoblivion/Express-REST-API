@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 const usersController = require('../controllers/usersController');
+const userValidator = require('../middlewares/userValidator');
 const authenticate = require('../authenticate');
 
 // Check JWT
@@ -29,7 +30,11 @@ router
   );
 
 // Register user
-router.post('/account', usersController.createUserAccount);
+router.post(
+  '/account',
+  userValidator.validateCreateAccount,
+  usersController.createUserAccount
+);
 
 // Login and return JWT token
 router.post('/account/create-jwt', usersController.createJwt);

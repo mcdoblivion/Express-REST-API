@@ -9,6 +9,8 @@ const productSchema = new Schema(
       type: String,
       required: true,
       unique: true,
+      minLength: 10,
+      maxLength: 100,
     },
     seller: {
       type: mongoose.Types.ObjectId,
@@ -18,10 +20,12 @@ const productSchema = new Schema(
     description: {
       type: String,
       required: true,
+      maxLength: 5000,
     },
     category: {
       type: String,
       required: true,
+      maxLength: 20,
     },
     images: [
       {
@@ -38,6 +42,7 @@ const productSchema = new Schema(
       type: Number,
       required: true,
       min: 1,
+      max: 9999,
     },
   },
   { timestamps: true }

@@ -1,6 +1,7 @@
 const express = require('express');
 const cartsRouter = express.Router();
 const cartsController = require('../controllers/cartsController');
+const cartValidator = require('../middlewares/cartValidator');
 const authenticate = require('../authenticate');
 
 cartsRouter.use(authenticate.verifyUser);
@@ -9,13 +10,13 @@ cartsRouter.use(authenticate.verifyUser);
 cartsRouter
   .route('/')
   .get(cartsController.getCart)
-  .post(cartsController.createCart)
+  .post(cartValidator.validateCreateCart, cartsController.createCart)
   .delete(cartsController.deleteCart);
 
 // /carts/:productId
 cartsRouter
   .route('/:productId')
   .delete(cartsController.deleteProductFromCart)
-  .put(cartsController.updateProductQuantity);
+  .put(cartValidator.validateUpdateCart, cartsController.updateProductQuantity);
 
 module.exports = cartsRouter;

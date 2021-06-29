@@ -7,19 +7,24 @@ const userSchema = new Schema({
   firstName: {
     type: String,
     required: true,
+    maxLength: 20,
   },
   lastName: {
     type: String,
     required: true,
+    maxLength: 20,
   },
   phoneNumber: {
     type: String,
     required: true,
     unique: true,
+    minLength: 10,
+    maxLength: 10,
   },
   address: {
     type: String,
     required: true,
+    maxLength: 100,
   },
   admin: {
     type: Boolean,
