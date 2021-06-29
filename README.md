@@ -6,17 +6,17 @@
 
 #### Users routes:
 
-- GET /users[?_id=userId] - lấy thông tin tất cả hoặc của user có \_id = userId, cần quyền Admin
+- GET /users - lấy thông tin tất cả users, cần quyền Admin
 
-- DELETE /users/:userId - xoá user có \_id = :userId
+- GET/ DELETE /users/:userId - xoá user có \_id = :userId
 
-- POST /users/signup - đăng ký tài khoản
+- POST /users/account - đăng ký tài khoản
 
-- POST /users/login - lấy JWT để đăng nhập
+- POST /users/account/create-jwt - lấy JWT để đăng nhập
 
 - POST /users/change-password - đổi mật khẩu cho user đang đăng nhập
 
-- GET /users/checkJWT - kiểm tra token đang dùng có hợp lệ không
+- GET /users/jwt-info - kiểm tra token đang dùng có hợp lệ không
 
 #### Products routes:
 
@@ -26,9 +26,11 @@
 
 - GET / PUT / DELETE /products/:productId - lấy / sửa / xoá sản phẩm có \_id = :productId. Sản phẩm bị sửa / xoá cần thuộc sở hữu của user đang đăng nhập
 
+- GET /products/comments - lấy toàn bộ comments của tất cả bài viết
+
 - GET / POST /products/:productId/comments - lấy tất cả comments / thêm 1 comment vào sản phẩm có \_id = :productId. POST chỉ khả dụng với user đã đăng nhập
 
-- GET / PUT / DELETE /products/:productId/comments/:commentId - lấy / sửa / xoá comment có \_id = :commentId của sản phẩm có \_id = :productId. Comment bị sửa / xoá cần thuộc sở hữu của user đang đăng nhập
+- PUT / DELETE /products/:productId/comments/:commentId - sửa / xoá comment có \_id = :commentId của sản phẩm có \_id = :productId. Comment bị sửa / xoá cần thuộc sở hữu của user đang đăng nhập
 
 #### Carts routes:
 
