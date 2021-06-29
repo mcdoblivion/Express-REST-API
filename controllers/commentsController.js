@@ -2,13 +2,21 @@ const Comments = require('../models/comments');
 const Products = require('../models/products');
 const Orders = require('../models/orders');
 
-module.exports.getAllComments = (req, res, next) => {
+module.exports.getAllCommentsOneProduct = (req, res, next) => {
   Comments.find({ product: req.params.productId })
     .populate('author', '-_id -__v -phoneNumber -admin -address')
     .then((comments) => {
       res.status(200).json({ success: true, data: comments });
     })
     .catch((err) => next(err));
+};
+
+module.exports.getAllCommentsAllProducts = (req, res, next) => {
+  Comments.find({})
+    .then((comments) => {
+      return res.status(200).json({ success: true, data: comments });
+    })
+    .catch((error) => next(err));
 };
 
 module.exports.createComment = (req, res, next) => {

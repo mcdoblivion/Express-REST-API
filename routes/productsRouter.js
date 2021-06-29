@@ -18,6 +18,9 @@ productsRouter
   .post(authenticate.verifyUser, productsController.createProduct)
   .delete(authenticate.verifyUser, productsController.deleteAllProducts);
 
+// /products/comments
+productsRouter.get('/comments', commentsController.getAllCommentsAllProducts);
+
 // /products/:productId
 productsRouter
   .route('/:productId')
@@ -28,7 +31,7 @@ productsRouter
 // /products/:productId/comments
 productsRouter
   .route('/:productId/comments')
-  .get(commentsController.getAllComments)
+  .get(commentsController.getAllCommentsOneProduct)
   .post(authenticate.verifyUser, commentsController.createComment);
 
 // /products/:productId/comments/:commentId

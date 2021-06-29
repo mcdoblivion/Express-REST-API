@@ -1,4 +1,5 @@
 const Products = require('../models/products');
+const Comments = require('../models/comments');
 const fs = require('fs');
 
 module.exports.getProducts = (req, res, next) => {
@@ -36,10 +37,16 @@ module.exports.deleteAllProducts = (req, res, next) => {
     .then(
       (products) => {
         products.forEach((product) => {
+          Comments.deleteMany({ product: product._id })
+            .then(() => {
+              console.log('Deleted relative comments!');
+            })
+            .catch((err) => next(err));
+
           product.images.forEach((image) => {
-            fs.unlink(image, (err) => console.log(err));
+            fs.unlink(`public/${image}`, (err) => console.log('Error:', err));
           });
-          product.remove();
+          product.remove().catch((err) => next(err));
         });
 
         res
@@ -134,8 +141,14 @@ module.exports.deleteProduct = (req, res, next) => {
 
       Products.findByIdAndDelete(req.params.productId).then(
         (product) => {
+          Comments.deleteMany({ product: product._id })
+            .then(() => {
+              console.log('Deleted relative comments!');
+            })
+            .catch((err) => next(err));
+
           product.images.forEach((image) => {
-            fs.unlink(image, (err) => console.log(err));
+            fs.unlink(`public/${image}`, (err) => console.log(err));
           });
 
           return res
