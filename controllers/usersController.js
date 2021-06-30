@@ -51,7 +51,7 @@ module.exports.deleteUser = (req, res, next) => {
 
 module.exports.createUserAccount = (req, res, next) => {
   Users.register(new Users({ ...req.body }), req.body.password, (err, user) => {
-    if (err) return res.status(500).json({ err: err });
+    if (err) return res.status(500).json({ success: false, msg: err });
 
     user
       .save()
