@@ -4,7 +4,6 @@ const fs = require('fs');
 
 module.exports.getProducts = (req, res, next) => {
   Products.find(req.query)
-    .populate('comments.author', '-_id -__v -phoneNumber -admin -address')
     .populate('seller', '-_id -__v -phoneNumber -admin -address')
     .then(
       (products) => {
@@ -60,7 +59,6 @@ module.exports.deleteAllProducts = (req, res, next) => {
 
 module.exports.getOwnProducts = (req, res, next) => {
   Products.find({ seller: req.user._id })
-    .populate('comments.author', '-_id -__v -phoneNumber -admin -address')
     .populate('seller', '-_id -__v -phoneNumber -admin -address')
     .then(
       (products) => {
@@ -76,7 +74,6 @@ module.exports.getOwnProducts = (req, res, next) => {
 
 module.exports.getProductById = (req, res, next) => {
   Products.findById(req.params.productId)
-    .populate('comments.author', '-_id -__v -phoneNumber -admin -address')
     .populate('seller', '-_id -__v -phoneNumber -admin -address')
     .then(
       (product) => {
@@ -111,7 +108,7 @@ module.exports.updateProduct = (req, res, next) => {
 
       Products.findByIdAndUpdate(
         req.params.productId,
-        { $set: req.body },
+        { $set: { ...req.body, rating: product.rating } },
         { new: true }
       ).then(
         () =>

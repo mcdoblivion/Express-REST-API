@@ -96,18 +96,13 @@ module.exports.createJwt = (req, res, next) => {
 
 module.exports.changePassword = (req, res, next) => {
   Users.findById(req.user._id)
-    .then(
-      (user) => {
-        user.changePassword(req.body.oldPassword, req.body.newPassword).then(
-          () => {
-            return res
-              .status(200)
-              .json({ success: true, msg: 'Changed password successfully!' });
-          },
-          (err) => next(err)
-        );
-      },
-      (err) => next(err)
-    )
+    .then((user) => {
+      return user.changePassword(req.body.oldPassword, req.body.newPassword);
+    })
+    .then(() => {
+      return res
+        .status(200)
+        .json({ success: true, msg: 'Changed password successfully!' });
+    })
     .catch((err) => next(err));
 };

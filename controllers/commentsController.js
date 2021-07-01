@@ -1,6 +1,7 @@
 const Comments = require('../models/comments');
 const Products = require('../models/products');
-const Orders = require('../models/orders');
+const CartItems = require('../models/cartItems');
+const config = require('../config');
 
 module.exports.getAllCommentsOneProduct = (req, res, next) => {
   Comments.find({ product: req.params.productId })
@@ -16,7 +17,7 @@ module.exports.getAllCommentsAllProducts = (req, res, next) => {
     .then((comments) => {
       return res.status(200).json({ success: true, data: comments });
     })
-    .catch((error) => next(err));
+    .catch((error) => next(error));
 };
 
 module.exports.createComment = (req, res, next) => {
@@ -40,33 +41,19 @@ module.exports.createComment = (req, res, next) => {
           .json({ success: false, msg: 'You can only comment once!' });
       }
 
-      return Orders.find({ status: 1 });
+      return CartItems.findOne({
+        user: req.user._id,
+        product: req.params.productId,
+        status: config.productStatus.delivered,
+      });
     })
-    .then((orders) => {
-      if (!orders) {
+    .then((item) => {
+      if (!item) {
         return res.status(400).json({
           success: false,
-          msg: 'You can only comment after buy this product!',
+          msg: 'You can only comment after received this product!',
         });
       }
-
-      const userOrders = orders.filter(
-        (order) => order.customer.user.toString() === req.user._id.toString()
-      );
-
-      const isBought = userOrders.some((order) =>
-        order.products.some(
-          (product) => product.product.toString() === req.params.productId
-        )
-      );
-
-      if (!isBought) {
-        return res.status(400).json({
-          success: false,
-          msg: 'You can only comment after buy this product!',
-        });
-      }
-
       return Comments.create({
         ...req.body,
         author: req.user._id,
@@ -74,6 +61,17 @@ module.exports.createComment = (req, res, next) => {
       });
     })
     .then(() => {
+      return Comments.find({ product: req.params.productId });
+    })
+    .then((comments) => {
+      const newProductRating =
+        comments.reduce((acc, comment) => acc + comment.rating, 0) /
+        comments.length;
+
+      Products.findByIdAndUpdate(req.params.productId, {
+        $set: { rating: newProductRating },
+      });
+
       return res
         .status(201)
         .json({ success: true, msg: 'Created comment successfully!' });
@@ -117,6 +115,17 @@ module.exports.updateComment = (req, res, next) => {
       return comment.save();
     })
     .then(() => {
+      return Comments.find({ product: req.params.productId });
+    })
+    .then((comments) => {
+      const newProductRating =
+        comments.reduce((acc, comment) => acc + comment.rating, 0) /
+        comments.length;
+
+      Products.findByIdAndUpdate(req.params.productId, {
+        $set: { rating: newProductRating },
+      });
+
       return res
         .status(200)
         .json({ success: true, msg: 'Updated comment successfully!' });
@@ -157,6 +166,17 @@ module.exports.deleteComment = (req, res, next) => {
       return Comments.deleteOne({ _id: comment._id });
     })
     .then(() => {
+      return Comments.find({ product: req.params.productId });
+    })
+    .then((comments) => {
+      const newProductRating =
+        comments.reduce((acc, comment) => acc + comment.rating, 0) /
+        comments.length;
+
+      Products.findByIdAndUpdate(req.params.productId, {
+        $set: { rating: newProductRating },
+      });
+
       return res
         .status(200)
         .json({ success: true, msg: 'Deleted comment successfully!' });

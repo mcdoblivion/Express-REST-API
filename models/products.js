@@ -22,6 +22,12 @@ const productSchema = new Schema(
       required: true,
       maxLength: 5000,
     },
+    rating: {
+      type: Number,
+      default: 5,
+      max: 5,
+      min: 1,
+    },
     category: {
       type: String,
       required: true,

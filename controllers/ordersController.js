@@ -1,4 +1,6 @@
-const Carts = require('../models/carts');
+const config = require('../config');
+const CartItems = require('../models/cartItems');
+const OrderItems = require('../models/orderItems');
 const Orders = require('../models/orders');
 const Products = require('../models/products');
 
@@ -7,69 +9,38 @@ module.exports.getOrders = (req, res, next) => {
   if (req.query.status) status = { status: req.query.status };
 
   Orders.find(status)
-    .populate('customer.user', '-admin -__v')
-    .populate('seller', '-admin -__v')
-    .populate('products.product')
-    .then(
-      (orders) => {
-        return res.status(200).json({
-          success: true,
-          data: orders.filter((order) => {
-            if (req.query.sellOrder === 'true') {
-              return order.seller._id.toString() === req.user._id.toString();
-            }
-            return (
-              order.customer.user._id.toString() === req.user._id.toString()
-            );
-          }),
-        });
-      },
-      (err) => next(err)
-    )
+    .then((orders) => {
+      const ordersFiltered = req.query.sellOrder
+        ? orders.filter((order) => order.seller === req.user._id)
+        : orders.filter((order) => order.customer === req.user._id);
+
+      const result = ordersFiltered.map(async (order) => {
+        const orderItems = await OrderItems.find({ order: order._id }).populate(
+          'product'
+        );
+        return { ...order, orderItems: orderItems };
+      });
+
+      return res.status(200).json({ success: true, data: result });
+    })
     .catch((err) => next(err));
 };
 
 module.exports.createOrder = (req, res, next) => {
-  Orders.create(req.body)
+  Orders.create({ ...req.body, status: config.productStatus.waitSellerConfirm })
     .then((order) => {
-      Products.find({})
-        .then((allProducts) => {
-          req.body.products.forEach((products) => {
-            let foundProduct = allProducts.find(
-              (product) =>
-                product._id.toString() === products.product.toString()
-            );
-            foundProduct.numberInStock -= products.quantity;
-            foundProduct.save();
-          });
-
-          console.log('Saved products!');
-        })
-        .catch((err) => next(err));
-
-      Carts.findOne({ user: req.user._id })
-        .then((cart) => {
-          if (cart.products) {
-            req.body.products.forEach((products) => {
-              let foundProduct = cart.products.find(
-                (cartProducts) =>
-                  cartProducts.product.toString() ===
-                  products.product.toString()
-              );
-              if (foundProduct) foundProduct.remove();
-            });
-
-            cart.save();
-            console.log('Saved cart!');
-          }
-        })
-        .catch((err) => next(err));
-
       console.log('Order created!');
+
+      req.body.orderItems.forEach(async (item) => {
+        const product = await Products.findById(item.product);
+        product.numberInStock -= item.quantity;
+        product.save();
+        OrderItems.create({ ...item, order: order._id });
+      });
+
       return res.status(201).json({
         success: true,
         msg: 'Order is successful, wait for seller to confirm',
-        data: { orderId: order._id },
       });
     })
     .catch((err) => next(err));
@@ -77,18 +48,16 @@ module.exports.createOrder = (req, res, next) => {
 
 module.exports.getOrderById = (req, res, next) => {
   Orders.findById(req.params.orderId)
-    .populate('customer.user', '-admin -__v')
-    .populate('seller', '-admin -__v')
-    .populate('products.product')
-    .then(
-      (order) => {
-        return res.status(200).json({
-          success: true,
-          data: order,
-        });
-      },
-      (err) => next(err)
-    )
+    .then(async (order) => {
+      const orderItems = await OrderItems.find({ order: order._id }).populate(
+        'product'
+      );
+
+      return res.status(200).json({
+        success: true,
+        data: { ...order, orderItems: orderItems },
+      });
+    })
     .catch((err) => next(err));
 };
 
@@ -99,75 +68,66 @@ module.exports.updateOrderStatus = (req, res, next) => {
       .json({ success: false, msg: 'Operation must be cancel/confirm!' });
   }
   Orders.findById(req.params.orderId)
-    .then(
-      (order) => {
-        if (
-          order.customer.user.toString() !== req.user._id.toString() &&
-          order.seller.toString() !== req.user._id.toString()
-        ) {
-          return res
-            .status(403)
-            .json({ success: false, msg: 'This order is not yours!' });
-        }
+    .then((order) => {
+      if (
+        order.customer.user.toString() !== req.user._id.toString() &&
+        order.seller.toString() !== req.user._id.toString()
+      ) {
+        return res
+          .status(403)
+          .json({ success: false, msg: 'This order is not yours!' });
+      }
 
-        if (order.status === 0) {
-          if (req.query.operation === 'cancel') {
-            Products.find({ seller: order.seller })
-              .then(
-                (allProducts) => {
-                  order.products.forEach((products) => {
-                    let foundProduct = allProducts.find(
-                      (product) =>
-                        product._id.toString() === products.product.toString()
-                    );
+      if (order.status === config.productStatus.waitSellerConfirm) {
+        if (req.query.operation === 'cancel') {
+          Products.find({ seller: order.seller })
+            .then((allProducts) => {
+              order.products.forEach((products) => {
+                let foundProduct = allProducts.find(
+                  (product) =>
+                    product._id.toString() === products.product.toString()
+                );
 
-                    foundProduct.numberInStock += products.quantity;
-                    foundProduct.save();
-                  });
-                  console.log('Saved products!');
-                },
-                (err) => next(err)
-              )
-              .catch((err) => next(err));
+                foundProduct.numberInStock += products.quantity;
+                foundProduct.save();
+              });
+              console.log('Saved products!');
 
-            order.status = -1;
-            order.save().then(
-              () =>
-                res.status(200).json({
-                  success: true,
-                  msg: 'Order canceled successfully!',
-                }),
-              (err) => next(err)
-            );
-          } else {
-            if (order.seller.toString() !== req.user._id.toString()) {
-              return res
-                .status(403)
-                .json({ success: false, msg: 'This order is not yours!' });
-            } else {
-              order.status = 1;
-              order.save().then(
-                () =>
-                  res.status(200).json({
-                    success: true,
-                    msg: 'Order confirmed successfully!',
-                  }),
-                (err) => next(err)
-              );
-            }
-          }
-        } else if (order.status === 1) {
-          return res.status(403).json({
-            success: false,
-            msg: 'This order has been delivered!',
-          });
+              order.status = config.productStatus.orderCanceled;
+              return order.save();
+            })
+            .then(() =>
+              res.status(200).json({
+                success: true,
+                msg: 'Order canceled successfully!',
+              })
+            )
+            .catch((err) => next(err));
         } else {
-          return res
-            .status(403)
-            .json({ success: false, msg: 'This order has been canceled!' });
+          if (order.seller.toString() !== req.user._id.toString()) {
+            return res
+              .status(403)
+              .json({ success: false, msg: 'This order is not yours!' });
+          } else {
+            order.status = config.productStatus.delivered;
+            order.save().then(() =>
+              res.status(200).json({
+                success: true,
+                msg: 'Order confirmed successfully!',
+              })
+            );
+          }
         }
-      },
-      (err) => next(err)
-    )
+      } else if (order.status === config.productStatus.delivered) {
+        return res.status(403).json({
+          success: false,
+          msg: 'This order has been delivered!',
+        });
+      } else {
+        return res
+          .status(403)
+          .json({ success: false, msg: 'This order has been canceled!' });
+      }
+    })
     .catch((err) => next(err));
 };
