@@ -22,17 +22,15 @@ const upload = multer({ storage: storage, fileFilter: imageFileFilter });
 
 const uploadRouter = express.Router();
 
-uploadRouter.post(
-  '/',
-  authenticate.verifyUser,
-  upload.single('imageFile'),
-  (req, res, next) => {
-    res.status(201).json({
-      success: true,
-      msg: 'Upload image successfully to: ' + req.file.path,
-      path: '/images/' + req.file.filename,
-    });
-  }
-);
+uploadRouter.use(authenticate.verifyUser);
+
+// /upload-image
+uploadRouter.post('/', upload.single('imageFile'), (req, res, next) => {
+  res.status(201).json({
+    success: true,
+    msg: 'Upload image successfully to: ' + req.file.path,
+    path: '/images/' + req.file.filename,
+  });
+});
 
 module.exports = uploadRouter;

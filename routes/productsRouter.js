@@ -6,44 +6,46 @@ const authenticate = require('../authenticate');
 const productValidator = require('../middlewares/productValidator');
 const commentValidator = require('../middlewares/commentValidator');
 
-// GET /products/own-products
+// GET /products/
+productsRouter.get('/', productsController.getProducts);
+
+// GET /products/:productId
+productsRouter.get('/:productId', productsController.getProductById);
+
+// GET /products/comments
+productsRouter.get('/comments', commentsController.getAllCommentsAllProducts);
+
+// /products/:productId/comments
 productsRouter.get(
-  '/own-products',
-  authenticate.verifyUser,
-  productsController.getOwnProducts
+  '/:productId/comments',
+  commentsController.getAllCommentsOneProduct
 );
+
+// All operation after that need authorization
+productsRouter.use(authenticate.verifyUser);
+
+// GET /products/own-products
+productsRouter.get('/own-products', productsController.getOwnProducts);
 
 // /products/
 productsRouter
   .route('/')
-  .get(productsController.getProducts)
   .post(
-    authenticate.verifyUser,
     productValidator.validateCreateProduct,
     productsController.createProduct
   )
-  .delete(authenticate.verifyUser, productsController.deleteAllProducts);
-
-// /products/comments
-productsRouter.get('/comments', commentsController.getAllCommentsAllProducts);
+  .delete(productsController.deleteAllProducts);
 
 // /products/:productId
 productsRouter
   .route('/:productId')
-  .get(productsController.getProductById)
-  .put(
-    authenticate.verifyUser,
-    productValidator.validateUpdateProduct,
-    productsController.updateProduct
-  )
-  .delete(authenticate.verifyUser, productsController.deleteProduct);
+  .put(productValidator.validateUpdateProduct, productsController.updateProduct)
+  .delete(productsController.deleteProduct);
 
 // /products/:productId/comments
 productsRouter
   .route('/:productId/comments')
-  .get(commentsController.getAllCommentsOneProduct)
   .post(
-    authenticate.verifyUser,
     commentValidator.validateCreateComment,
     commentsController.createComment
   );
@@ -51,11 +53,7 @@ productsRouter
 // /products/:productId/comments/:commentId
 productsRouter
   .route('/:productId/comments/:commentId')
-  .put(
-    authenticate.verifyUser,
-    commentValidator.validateUpdateComment,
-    commentsController.updateComment
-  )
-  .delete(authenticate.verifyUser, commentsController.deleteComment);
+  .put(commentValidator.validateUpdateComment, commentsController.updateComment)
+  .delete(commentsController.deleteComment);
 
 module.exports = productsRouter;

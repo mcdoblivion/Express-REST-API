@@ -5,16 +5,18 @@ const ordersController = require('../controllers/ordersController');
 const authenticate = require('../authenticate');
 const orderValidator = require('../middlewares/orderValidator');
 
+ordersRouter.use(authenticate.verifyUser);
+
 // /orders[?status=-1/0/1, sellOrder=true]
 ordersRouter
   .route('/')
-  .get(authenticate.verifyUser, ordersController.getOrders)
+  .get(ordersController.getOrders)
   .post(orderValidator.validateOrder, ordersController.createOrder);
 
 // /orders/:orderId[?operation=cancel/confirm]
 ordersRouter
   .route('/:orderId')
   .get(ordersController.getOrderById)
-  .put(authenticate.verifyUser, ordersController.updateOrderStatus);
+  .put(ordersController.updateOrderStatus);
 
 module.exports = ordersRouter;

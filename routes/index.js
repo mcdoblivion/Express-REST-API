@@ -1,26 +1,16 @@
-var express = require('express');
-var router = express.Router();
+const express = require('express');
+const router = express.Router();
 
-/* GET home page. */
-router
-  .route('/')
-  .get((req, res, next) => {
-    res.render('index', { title: 'Express' });
-  })
-  .post((req, res) => {
-    res
-      .status(403)
-      .end('POST operation not supported on ' + req.headers.host + '/');
-  })
-  .put((req, res) => {
-    res
-      .status(403)
-      .end('PUT operation not supported on ' + req.headers.host + '/');
-  })
-  .delete((req, res) => {
-    res
-      .status(403)
-      .end('DELETE operation not supported on ' + req.headers.host + '/');
-  });
+const usersRouter = require('./users');
+const productsRouter = require('./productsRouter');
+const cartsRouter = require('./cartsRouter');
+const ordersRouter = require('./ordersRouter');
+const uploadRouter = require('./uploadRouter');
+
+router.use('/users', usersRouter);
+router.use('/products', productsRouter);
+router.use('/carts', cartsRouter);
+router.use('/orders', ordersRouter);
+router.use('/upload-image', uploadRouter);
 
 module.exports = router;

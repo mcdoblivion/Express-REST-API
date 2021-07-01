@@ -1,4 +1,3 @@
-const createError = require('http-errors');
 const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
@@ -8,11 +7,7 @@ const config = require('./config');
 
 const passport = require('passport');
 
-const usersRouter = require('./routes/users');
-const productsRouter = require('./routes/productsRouter');
-const cartsRouter = require('./routes/cartsRouter');
-const ordersRouter = require('./routes/ordersRouter');
-const uploadRouter = require('./routes/uploadRouter');
+const indexRouter = require('./routes/index');
 const cors = require('./routes/cors');
 
 var app = express();
@@ -47,26 +42,19 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.use(cors.corsWithOptions);
-app.use('/users', usersRouter);
-app.use('/products', productsRouter);
-app.use('/carts', cartsRouter);
-app.use('/orders', ordersRouter);
-app.use('/upload-image', uploadRouter);
+app.use('/api/v1', indexRouter);
 
 // catch 404 and forward to error handler
-app.use(function (req, res, next) {
-  next(createError(404));
+app.use('*', (req, res, next) => {
+  const err = new Error('URL not exist!');
+  err.status = 404;
+  next(err);
 });
 
 // error handler
-app.use(function (err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
+app.use((err, req, res, next) => {
+  // send response with error code
+  res.status(err.status || 500).json({ success: false, msg: err.toString() });
 });
 
 module.exports = app;

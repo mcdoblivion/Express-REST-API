@@ -7,28 +7,6 @@ const authenticate = require('../authenticate');
 // Check JWT
 router.get('/jwt-info', usersController.getJwtInfo);
 
-// GET all users, need Admin permission
-router.get(
-  '/',
-  authenticate.verifyUser,
-  authenticate.verifyAdmin,
-  usersController.getAllUsers
-);
-
-// DELETE specific user with id, need Admin permission
-router
-  .route('/:userId')
-  .get(
-    authenticate.verifyUser,
-    authenticate.verifyAdmin,
-    usersController.getUserById
-  )
-  .delete(
-    authenticate.verifyUser,
-    authenticate.verifyAdmin,
-    usersController.deleteUser
-  );
-
 // Register user
 router.post(
   '/account',
@@ -39,7 +17,22 @@ router.post(
 // Login and return JWT token
 router.post('/account/create-jwt', usersController.createJwt);
 
+// All operation after that need authorization
+router.use(authenticate.verifyUser);
+
 // Change password
-router.put('/account/change-password', authenticate.verifyUser);
+router.put('/account/change-password', usersController.changePassword);
+
+// All operation after that need authorization as Admin
+router.use(authenticate.verifyAdmin);
+
+// GET all users, need Admin permission
+router.get('/', usersController.getAllUsers);
+
+// GET / DELETE specific user with id, need Admin permission
+router
+  .route('/:userId')
+  .get(usersController.getUserById)
+  .delete(usersController.deleteUser);
 
 module.exports = router;
