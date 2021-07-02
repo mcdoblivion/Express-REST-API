@@ -7,11 +7,15 @@ const orderValidator = require('../middleware/validator/orderValidator');
 
 ordersRouter.use(authenticate.verifyUser);
 
-// /orders[?status=-1/0/1, sellOrder=true]
-ordersRouter
-  .route('/')
-  .get(ordersController.getOrders)
-  .post(orderValidator.validateOrder, ordersController.createOrder);
+// GET /orders[?status=-1/0/1, sellOrder=true]
+ordersRouter.get('/', ordersController.getOrders);
+
+// POST /orders
+ordersRouter.post(
+  '/',
+  orderValidator.validateOrder,
+  ordersController.createOrder
+);
 
 // /orders/:orderId[?operation=cancel/confirm]
 ordersRouter

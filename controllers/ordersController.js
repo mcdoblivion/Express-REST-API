@@ -27,7 +27,11 @@ module.exports.getOrders = (req, res, next) => {
 };
 
 module.exports.createOrder = (req, res, next) => {
-  Orders.create({ ...req.body, status: config.productStatus.waitSellerConfirm })
+  Orders.create({
+    ...req.body,
+    customer: req.user._id,
+    status: config.productStatus.waitSellerConfirm,
+  })
     .then((order) => {
       console.log('Order created!');
 
