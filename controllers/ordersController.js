@@ -63,9 +63,9 @@ module.exports.getOrderById = (req, res, next) => {
 
 module.exports.updateOrderStatus = (req, res, next) => {
   if (req.query.operation !== 'cancel' || req.query.operation !== 'confirm') {
-    res
-      .status(400)
-      .json({ success: false, msg: 'Operation must be cancel/confirm!' });
+    const err = new Error('Operation must be cancel/confirm!');
+    err.status = 400;
+    next(err);
   }
   Orders.findById(req.params.orderId)
     .then((order) => {
@@ -73,9 +73,9 @@ module.exports.updateOrderStatus = (req, res, next) => {
         order.customer.user.toString() !== req.user._id.toString() &&
         order.seller.toString() !== req.user._id.toString()
       ) {
-        return res
-          .status(403)
-          .json({ success: false, msg: 'This order is not yours!' });
+        const err = new Error('This order is not yours!');
+        err.status = 403;
+        next(err);
       }
 
       if (order.status === config.productStatus.waitSellerConfirm) {
@@ -105,9 +105,9 @@ module.exports.updateOrderStatus = (req, res, next) => {
             .catch((err) => next(err));
         } else {
           if (order.seller.toString() !== req.user._id.toString()) {
-            return res
-              .status(403)
-              .json({ success: false, msg: 'This order is not yours!' });
+            const err = new Error('This order is not yours!');
+            err.status = 403;
+            next(err);
           } else {
             order.status = config.productStatus.delivered;
             order.save().then(() =>
@@ -119,14 +119,13 @@ module.exports.updateOrderStatus = (req, res, next) => {
           }
         }
       } else if (order.status === config.productStatus.delivered) {
-        return res.status(403).json({
-          success: false,
-          msg: 'This order has been delivered!',
-        });
+        const err = new Error('This order has been delivered!');
+        err.status = 403;
+        next(err);
       } else {
-        return res
-          .status(403)
-          .json({ success: false, msg: 'This order has been canceled!' });
+        const err = new Error('This order has been canceled!');
+        err.status = 403;
+        next(err);
       }
     })
     .catch((err) => next(err));

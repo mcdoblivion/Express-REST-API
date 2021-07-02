@@ -9,9 +9,9 @@ module.exports.getJwtInfo = (req, res, next) => {
     }
 
     if (!user) {
-      return res
-        .status(401)
-        .json({ success: false, msg: 'JWT invalid', err: info });
+      const err = new Error(info);
+      err.status = 401;
+      next(err);
     }
 
     return res
@@ -37,11 +37,13 @@ module.exports.getUserById = (req, res, next) => {
 };
 
 module.exports.deleteUser = (req, res, next) => {
-  if (!isValidObjectId(req.params.userId))
-    return res.status(400).json({ success: false, msg: 'Id invalid!' });
-
   Users.findByIdAndDelete(req.params.userId)
-    .then(() => {
+    .then((user) => {
+      if (!user) {
+        const err = new Error('User not found!');
+        err.status = 404;
+        next(err);
+      }
       res
         .status(200)
         .json({ success: true, msg: 'Deleted user successfully!' });
@@ -51,7 +53,7 @@ module.exports.deleteUser = (req, res, next) => {
 
 module.exports.createUserAccount = (req, res, next) => {
   Users.register(new Users({ ...req.body }), req.body.password, (err, user) => {
-    if (err) return res.status(500).json({ success: false, msg: err });
+    if (err) next(err);
 
     user
       .save()
@@ -71,18 +73,16 @@ module.exports.createJwt = (req, res, next) => {
     if (err) return next(err);
 
     console.log(req.user);
-    if (!user)
-      return res
-        .status(401)
-        .json({ success: false, msg: 'Login unsuccessful!', err: info });
+    if (!user) {
+      const err = new Error(info);
+      err.status = 401;
+      next(err);
+    }
 
     req.logIn(user, (err) => {
-      if (err)
-        return res.status(401).json({
-          success: false,
-          msg: 'Login unsuccessful!',
-          err: 'Could not login!',
-        });
+      if (err) {
+        next(err);
+      }
     });
 
     const token = authenticate.getToken({ _id: req.user._id });

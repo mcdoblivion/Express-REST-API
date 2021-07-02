@@ -23,12 +23,13 @@ module.exports.getAllCommentsAllProducts = (req, res, next) => {
 module.exports.createComment = (req, res, next) => {
   Products.findById(req.params.productId)
     .then((product) => {
-      if (!product)
-        return res.status(404).json({
-          success: false,
-          msg: 'The product with id ' + req.params.productId + ' is not exist!',
-        });
-
+      if (!product) {
+        const err = new Error(
+          'The product with id ' + req.params.productId + ' is not exist!'
+        );
+        err.status = 404;
+        next(err);
+      }
       return Comments.findOne({
         author: req.user._id,
         product: req.params.productId,
@@ -36,11 +37,10 @@ module.exports.createComment = (req, res, next) => {
     })
     .then((comment) => {
       if (comment) {
-        return res
-          .status(400)
-          .json({ success: false, msg: 'You can only comment once!' });
+        const err = new Error('You can only comment once!');
+        err.status = 400;
+        next(err);
       }
-
       return CartItems.findOne({
         user: req.user._id,
         product: req.params.productId,
@@ -49,10 +49,11 @@ module.exports.createComment = (req, res, next) => {
     })
     .then((item) => {
       if (!item) {
-        return res.status(400).json({
-          success: false,
-          msg: 'You can only comment after received this product!',
-        });
+        const err = new Error(
+          'You can only comment after received this product!'
+        );
+        err.status = 400;
+        next(err);
       }
       return Comments.create({
         ...req.body,
@@ -82,31 +83,32 @@ module.exports.createComment = (req, res, next) => {
 module.exports.updateComment = (req, res, next) => {
   Products.findById(req.params.productId)
     .then((product) => {
-      if (!product)
-        return res.status(404).json({
-          success: false,
-          msg: 'The product with id ' + req.params.productId + ' is not exist!',
-        });
-
+      if (!product) {
+        const err = new Error(
+          'The product with id ' + req.params.productId + ' is not exist!'
+        );
+        err.status = 404;
+        next(err);
+      }
       return Comments.findById(req.params.commentId);
     })
     .then((comment) => {
       if (!comment) {
-        return res
-          .status(404)
-          .json({ success: false, msg: 'Comment not found!' });
+        const err = new Error('Comment not found!');
+        err.status = 404;
+        next(err);
       }
 
       if (comment.product.toString() !== req.params.productId.toString()) {
-        return res
-          .status(400)
-          .json({ success: false, msg: 'Comment and product not match!' });
+        const err = new Error('Comment and product not match!');
+        err.status = 400;
+        next(err);
       }
 
       if (comment.author !== req.user._id) {
-        return res
-          .status(403)
-          .json({ success: false, msg: 'This comment is not yours!' });
+        const err = new Error('This comment is not yours!');
+        err.status = 403;
+        next(err);
       }
 
       if (req.body.comment) comment.comment = req.body.comment;
@@ -136,31 +138,32 @@ module.exports.updateComment = (req, res, next) => {
 module.exports.deleteComment = (req, res, next) => {
   Products.findById(req.params.productId)
     .then((product) => {
-      if (!product)
-        return res.status(404).json({
-          success: false,
-          msg: 'The product with id ' + req.params.productId + ' is not exist!',
-        });
-
+      if (!product) {
+        const err = new Error(
+          'The product with id ' + req.params.productId + ' is not exist!'
+        );
+        err.status = 404;
+        next(err);
+      }
       return Comments.findById(req.params.commentId);
     })
     .then((comment) => {
       if (!comment) {
-        return res
-          .status(404)
-          .json({ success: false, msg: 'Comment not found!' });
+        const err = new Error('Comment not found!');
+        err.status = 404;
+        next(err);
       }
 
       if (comment.product.toString() !== req.params.productId.toString()) {
-        return res
-          .status(400)
-          .json({ success: false, msg: 'Comment and product not match!' });
+        const err = new Error('Comment and product not match!');
+        err.status = 400;
+        next(err);
       }
 
       if (comment.author !== req.user._id) {
-        return res
-          .status(403)
-          .json({ success: false, msg: 'This comment is not yours!' });
+        const err = new Error('This comment is not yours!');
+        err.status = 403;
+        next(err);
       }
 
       return Comments.deleteOne({ _id: comment._id });

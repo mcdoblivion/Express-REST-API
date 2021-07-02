@@ -50,31 +50,30 @@ module.exports.deleteCart = (req, res, next) => {
 };
 
 module.exports.deleteProductFromCart = (req, res, next) => {
-  CartItems.findOne({ user: req.user._id, product: req.params.productId }).then(
-    (cartItem) => {
+  CartItems.findOne({ user: req.user._id, product: req.params.productId })
+    .then((cartItem) => {
       if (!cartItem) {
-        return res
-          .status(404)
-          .json({ success: false, msg: 'Product is not in cart!' });
+        const err = new Error('Product is not in cart!');
+        err.status = 404;
+        next(err);
       }
-
       return cartItem.remove();
-    }
-  );
-  then(() => {
-    return res
-      .status(200)
-      .json({ success: true, msg: 'Deleted product from cart!' });
-  }).catch((err) => next(err));
+    })
+    .then(() => {
+      return res
+        .status(200)
+        .json({ success: true, msg: 'Deleted product from cart!' });
+    })
+    .catch((err) => next(err));
 };
 
 module.exports.updateProductQuantity = (req, res, next) => {
   CartItems.findOne({ user: req.user._id, product: req.params.productId })
     .then((cartItem) => {
       if (!cartItem) {
-        return res
-          .status(404)
-          .json({ success: false, msg: 'Product is not in cart!' });
+        const err = new Error('Product is not in cart!');
+        err.status = 404;
+        next(err);
       }
       return CartItems.findByIdAndUpdate(cartItem._id, {
         $set: { ...req.body },
