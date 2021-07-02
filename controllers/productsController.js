@@ -4,7 +4,7 @@ const fs = require('fs');
 
 module.exports.getProducts = (req, res, next) => {
   Products.find(req.query)
-    .populate('seller', '-_id -__v -phoneNumber -admin -address')
+    .populate('seller', '-__v -phoneNumber -admin -address')
     .then((products) => {
       res.status(200).json({
         success: true,
@@ -50,7 +50,7 @@ module.exports.deleteAllProducts = (req, res, next) => {
 
 module.exports.getOwnProducts = (req, res, next) => {
   Products.find({ seller: req.user._id })
-    .populate('seller', '-_id -__v -phoneNumber -admin -address')
+    .populate('seller', '-__v -admin -address')
     .then((products) => {
       res.status(200).json({
         success: true,
@@ -62,7 +62,7 @@ module.exports.getOwnProducts = (req, res, next) => {
 
 module.exports.getProductById = (req, res, next) => {
   Products.findById(req.params.productId)
-    .populate('seller', '-_id -__v -phoneNumber -admin -address')
+    .populate('seller', '-__v -admin -address')
     .then((product) => {
       if (!product) {
         const err = new Error(

@@ -9,7 +9,6 @@ const productSchema = new Schema(
       type: String,
       required: true,
       unique: true,
-      minLength: 10,
       maxLength: 100,
     },
     seller: {
