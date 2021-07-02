@@ -2,9 +2,9 @@ const express = require('express');
 const productsRouter = express.Router();
 const productsController = require('../controllers/productsController');
 const commentsController = require('../controllers/commentsController');
-const authenticate = require('../authenticate');
-const productValidator = require('../middlewares/productValidator');
-const commentValidator = require('../middlewares/commentValidator');
+const authenticate = require('../middleware/authenticate');
+const productValidator = require('../middleware/validator/productValidator');
+const commentValidator = require('../middleware/validator/commentValidator');
 
 // GET /products/
 productsRouter.get('/', productsController.getProducts);

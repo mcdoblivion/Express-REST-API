@@ -1,6 +1,6 @@
 const Users = require('../models/users');
 const passport = require('passport');
-const authenticate = require('../authenticate');
+const authenticate = require('../middleware/authenticate');
 
 module.exports.getJwtInfo = (req, res, next) => {
   passport.authenticate('jwt', { session: false }, (err, user, info) => {

@@ -1,6 +1,6 @@
 const express = require('express');
 const multer = require('multer');
-const authenticate = require('../authenticate');
+const authenticate = require('../middleware/authenticate');
 
 const storage = multer.diskStorage({
   destination: (req, file, callback) => {

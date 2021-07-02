@@ -1,8 +1,8 @@
 const express = require('express');
 const cartsRouter = express.Router();
 const cartsController = require('../controllers/cartsController');
-const cartValidator = require('../middlewares/cartValidator');
-const authenticate = require('../authenticate');
+const cartValidator = require('../middleware/validator/cartValidator');
+const authenticate = require('../middleware/authenticate');
 
 cartsRouter.use(authenticate.verifyUser);
 

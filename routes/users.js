@@ -1,8 +1,8 @@
 var express = require('express');
 var router = express.Router();
 const usersController = require('../controllers/usersController');
-const userValidator = require('../middlewares/userValidator');
-const authenticate = require('../authenticate');
+const userValidator = require('../middleware/validator/userValidator');
+const authenticate = require('../middleware/authenticate');
 
 // Check JWT
 router.get('/jwt-info', usersController.getJwtInfo);
