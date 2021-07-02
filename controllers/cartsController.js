@@ -26,6 +26,7 @@ module.exports.createCart = (req, res, next) => {
       }
       return CartItems.create({
         ...req.body,
+        user: req.user._id,
       });
     })
     .then((cartItem) => {
