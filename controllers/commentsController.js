@@ -1,11 +1,11 @@
 const Comments = require('../models/comments');
 const Products = require('../models/products');
-const CartItems = require('../models/cartItems');
 const config = require('../config');
+const OrderItems = require('../models/orderItems');
 
 module.exports.getAllCommentsOneProduct = (req, res, next) => {
   Comments.find({ product: req.params.productId })
-    .populate('author', '-_id -__v -phoneNumber -admin -address')
+    .populate('author', '-__v -phoneNumber -admin -address')
     .then((comments) => {
       res.status(200).json({ success: true, data: comments });
     })
@@ -20,64 +20,77 @@ module.exports.getAllCommentsAllProducts = (req, res, next) => {
     .catch((error) => next(error));
 };
 
-module.exports.createComment = (req, res, next) => {
-  Products.findById(req.params.productId)
-    .then((product) => {
-      if (!product) {
-        const err = new Error(
-          'The product with id ' + req.params.productId + ' is not exist!'
-        );
-        err.status = 404;
-        next(err);
-      }
-      return Comments.findOne({
-        author: req.user._id,
-        product: req.params.productId,
-      });
-    })
-    .then((comment) => {
-      if (comment) {
-        const err = new Error('You can only comment once!');
-        err.status = 400;
-        next(err);
-      }
-      return CartItems.findOne({
-        user: req.user._id,
-        product: req.params.productId,
-        status: config.productStatus.delivered,
-      });
-    })
-    .then((item) => {
-      if (!item) {
-        const err = new Error(
-          'You can only comment after received this product!'
-        );
-        err.status = 400;
-        next(err);
-      }
-      return Comments.create({
-        ...req.body,
-        author: req.user._id,
-        product: req.params.productId,
-      });
-    })
-    .then(() => {
-      return Comments.find({ product: req.params.productId });
-    })
-    .then((comments) => {
-      const newProductRating =
-        comments.reduce((acc, comment) => acc + comment.rating, 0) /
-        comments.length;
+module.exports.createComment = async (req, res, next) => {
+  try {
+    // Check exist product
+    const product = await Products.findById(req.params.productId);
+    if (!product) {
+      const err = new Error(
+        'The product with id ' + req.params.productId + ' is not exist!'
+      );
+      err.status = 404;
+      next(err);
+    }
 
-      Products.findByIdAndUpdate(req.params.productId, {
+    // Check exist comment
+    const existComment = await Comments.findOne({
+      author: req.user._id,
+      product: req.params.productId,
+    });
+    if (existComment) {
+      const err = new Error('You can only comment once!');
+      err.status = 400;
+      next(err);
+    }
+
+    // Check received product
+    const orderItems = await OrderItems.find({
+      product: req.params.productId,
+    }).populate('order');
+
+    const receivedProduct = orderItems.some(
+      (item) =>
+        item.order.customer.toString() === req.user._id.toString() &&
+        item.order.status === config.productStatus.delivered
+    );
+
+    if (!receivedProduct) {
+      const err = new Error(
+        'You can only comment after received this product!'
+      );
+      err.status = 400;
+      next(err);
+    }
+
+    // Create new comment
+    const newComment = await Comments.create({
+      ...req.body,
+      author: req.user._id,
+      product: req.params.productId,
+    });
+
+    // Update product rating
+    const newComments = await Comments.find({ product: req.params.productId });
+    const newProductRating =
+      newComments.reduce((acc, comment) => acc + comment.rating, 0) /
+      newComments.length;
+
+    const updatedProduct = await Products.findByIdAndUpdate(
+      req.params.productId,
+      {
         $set: { rating: newProductRating },
-      });
+      }
+    );
 
-      return res
-        .status(201)
-        .json({ success: true, msg: 'Created comment successfully!' });
-    })
-    .catch((err) => next(err));
+    // Send response
+    return res.status(201).json({
+      success: true,
+      msg: 'Created comment successfully!',
+      data: newComment,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 module.exports.updateComment = (req, res, next) => {

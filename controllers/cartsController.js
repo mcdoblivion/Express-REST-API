@@ -40,14 +40,31 @@ module.exports.createCart = (req, res, next) => {
 };
 
 module.exports.deleteCart = (req, res, next) => {
-  CartItems.deleteMany({ user: req.user._id })
-    .then((response) => {
-      return res.status(200).json({
-        success: true,
-        msg: `Deleted ${response.deletedCount} products from cart!`,
-      });
-    })
-    .catch((err) => next(err));
+  if (req.body) {
+    CartItems.find({ user: req.user._id })
+      .then((items) => {
+        items.forEach((item) => {
+          if (req.body.includes(item.product.toString())) {
+            item.remove();
+          }
+        });
+
+        return res.status(200).json({
+          success: true,
+          msg: 'Deleted products from cart!',
+        });
+      })
+      .catch((err) => next(err));
+  } else {
+    CartItems.deleteMany({ user: req.user._id })
+      .then((response) => {
+        return res.status(200).json({
+          success: true,
+          msg: `Deleted ${response.deletedCount} products from cart!`,
+        });
+      })
+      .catch((err) => next(err));
+  }
 };
 
 module.exports.deleteProductFromCart = (req, res, next) => {
@@ -77,7 +94,7 @@ module.exports.updateProductQuantity = (req, res, next) => {
         next(err);
       }
       return CartItems.findByIdAndUpdate(cartItem._id, {
-        $set: { ...req.body },
+        $set: { quantity: req.body.quantity },
       });
     })
     .then(() => {

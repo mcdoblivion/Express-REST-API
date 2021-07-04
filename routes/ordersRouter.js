@@ -17,10 +17,10 @@ ordersRouter.post(
   ordersController.createOrder
 );
 
-// /orders/:orderId[?operation=cancel/confirm]
-ordersRouter
-  .route('/:orderId')
-  .get(ordersController.getOrderById)
-  .put(ordersController.updateOrderStatus);
+// GET /orders/:orderId
+ordersRouter.get('/:orderId', ordersController.getOrderById);
+
+// PUT /orders/:orderId[?operation=cancel/confirm]
+ordersRouter.route('/:orderId').put(ordersController.updateOrderStatus);
 
 module.exports = ordersRouter;
