@@ -3,7 +3,9 @@ const Comments = require('../models/comments');
 const fs = require('fs');
 
 module.exports.getProducts = (req, res, next) => {
-  Products.find(req.query)
+  Products.find(
+    req.query.search ? { $text: { $search: req.query.search } } : {}
+  )
     .populate('seller', '-__v -phoneNumber -admin -address')
     .then((products) => {
       res.status(200).json({

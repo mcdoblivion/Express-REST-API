@@ -6,7 +6,7 @@ const authenticate = require('../middleware/authenticate');
 const productValidator = require('../middleware/validator/productValidator');
 const commentValidator = require('../middleware/validator/commentValidator');
 
-// GET /products/
+// GET /products[?search=abc]
 productsRouter.get('/', productsController.getProducts);
 
 // GET /products/own-products
