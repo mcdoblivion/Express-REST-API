@@ -12,6 +12,15 @@ module.exports.getAllCommentsOneProduct = (req, res, next) => {
     .catch((err) => next(err));
 };
 
+module.exports.getCommentById = async (req, res, next) => {
+  try {
+    const foundComment = await Comments.findById(req.params.commentId);
+    res.status(200).json({ success: true, data: foundComment });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports.getAllCommentsAllProducts = (req, res, next) => {
   Comments.find({})
     .then((comments) => {
@@ -93,109 +102,115 @@ module.exports.createComment = async (req, res, next) => {
   }
 };
 
-module.exports.updateComment = (req, res, next) => {
-  Products.findById(req.params.productId)
-    .then((product) => {
-      if (!product) {
-        const err = new Error(
-          'The product with id ' + req.params.productId + ' is not exist!'
-        );
-        err.status = 404;
-        next(err);
-      }
-      return Comments.findById(req.params.commentId);
-    })
-    .then((comment) => {
-      if (!comment) {
-        const err = new Error('Comment not found!');
-        err.status = 404;
-        next(err);
-      }
+module.exports.updateComment = async (req, res, next) => {
+  try {
+    // Check exist product
+    const product = await Products.findById(req.params.productId);
+    if (!product) {
+      const err = new Error(
+        'The product with id ' + req.params.productId + ' is not exist!'
+      );
+      err.status = 404;
+      next(err);
+    }
+    // Check exist comment
+    const existComment = await Comments.findById(req.params.commentId);
+    if (!existComment) {
+      const err = new Error('Comment not found!');
+      err.status = 404;
+      next(err);
+    }
 
-      if (comment.product.toString() !== req.params.productId.toString()) {
-        const err = new Error('Comment and product not match!');
-        err.status = 400;
-        next(err);
-      }
+    if (existComment.product.toString() !== req.params.productId.toString()) {
+      const err = new Error('Comment and product not match!');
+      err.status = 400;
+      next(err);
+    }
 
-      if (comment.author !== req.user._id) {
-        const err = new Error('This comment is not yours!');
-        err.status = 403;
-        next(err);
-      }
+    if (existComment.author.toString() !== req.user._id.toString()) {
+      const err = new Error('This comment is not yours!');
+      err.status = 403;
+      next(err);
+    }
 
-      if (req.body.comment) comment.comment = req.body.comment;
-      if (req.body.rating) comment.rating = req.body.rating;
+    if (req.body.comment) existComment.comment = req.body.comment;
+    if (req.body.rating) existComment.rating = req.body.rating;
 
-      return comment.save();
-    })
-    .then(() => {
-      return Comments.find({ product: req.params.productId });
-    })
-    .then((comments) => {
-      const newProductRating =
-        comments.reduce((acc, comment) => acc + comment.rating, 0) /
-        comments.length;
+    await existComment.save();
 
-      Products.findByIdAndUpdate(req.params.productId, {
+    // Update product rating
+    const newComments = await Comments.find({ product: req.params.productId });
+    const newProductRating =
+      newComments.reduce((acc, comment) => acc + comment.rating, 0) /
+      newComments.length;
+
+    const updatedProduct = await Products.findByIdAndUpdate(
+      req.params.productId,
+      {
         $set: { rating: newProductRating },
-      });
+      }
+    );
 
-      return res
-        .status(200)
-        .json({ success: true, msg: 'Updated comment successfully!' });
-    })
-    .catch((err) => next(err));
+    // Send response
+    return res
+      .status(200)
+      .json({ success: true, msg: 'Updated comment successfully!' });
+  } catch (error) {
+    next(error);
+  }
 };
 
-module.exports.deleteComment = (req, res, next) => {
-  Products.findById(req.params.productId)
-    .then((product) => {
-      if (!product) {
-        const err = new Error(
-          'The product with id ' + req.params.productId + ' is not exist!'
-        );
-        err.status = 404;
-        next(err);
-      }
-      return Comments.findById(req.params.commentId);
-    })
-    .then((comment) => {
-      if (!comment) {
-        const err = new Error('Comment not found!');
-        err.status = 404;
-        next(err);
-      }
+module.exports.deleteComment = async (req, res, next) => {
+  try {
+    // Check exist product
+    const product = await Products.findById(req.params.productId);
+    if (!product) {
+      const err = new Error(
+        'The product with id ' + req.params.productId + ' is not exist!'
+      );
+      err.status = 404;
+      next(err);
+    }
+    // Check exist comment
+    const existComment = await Comments.findById(req.params.commentId);
+    if (!existComment) {
+      const err = new Error('Comment not found!');
+      err.status = 404;
+      next(err);
+    }
 
-      if (comment.product.toString() !== req.params.productId.toString()) {
-        const err = new Error('Comment and product not match!');
-        err.status = 400;
-        next(err);
-      }
+    // Check comment in product
+    if (existComment.product.toString() !== req.params.productId.toString()) {
+      const err = new Error('Comment and product not match!');
+      err.status = 400;
+      next(err);
+    }
 
-      if (comment.author !== req.user._id) {
-        const err = new Error('This comment is not yours!');
-        err.status = 403;
-        next(err);
-      }
+    // Check user have comment
+    if (existComment.author.toString() !== req.user._id.toString()) {
+      const err = new Error('This comment is not yours!');
+      err.status = 403;
+      next(err);
+    }
 
-      return Comments.deleteOne({ _id: comment._id });
-    })
-    .then(() => {
-      return Comments.find({ product: req.params.productId });
-    })
-    .then((comments) => {
-      const newProductRating =
-        comments.reduce((acc, comment) => acc + comment.rating, 0) /
-        comments.length;
+    // Delete comment
+    await existComment.remove();
 
-      Products.findByIdAndUpdate(req.params.productId, {
-        $set: { rating: newProductRating },
-      });
+    // Update product rating
+    const newComments = await Comments.find({ product: req.params.productId });
+    const newProductRating =
+      newComments.reduce((acc, comment) => acc + comment.rating, 0) /
+      newComments.length;
 
-      return res
-        .status(200)
-        .json({ success: true, msg: 'Deleted comment successfully!' });
-    })
-    .catch((err) => next(err));
+    await Products.findByIdAndUpdate(req.params.productId, {
+      $set: { rating: newProductRating },
+    });
+
+    // Send response
+    return res
+      .status(200)
+      .json({ success: true, msg: 'Deleted comment successfully!' });
+  } catch (error) {
+    next(error);
+  }
 };

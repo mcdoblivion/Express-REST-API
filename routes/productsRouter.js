@@ -9,11 +9,21 @@ const commentValidator = require('../middleware/validator/commentValidator');
 // GET /products/
 productsRouter.get('/', productsController.getProducts);
 
+// GET /products/own-products
+productsRouter.get(
+  '/own-products',
+  authenticate.verifyUser,
+  productsController.getOwnProducts
+);
+
 // GET /products/:productId
 productsRouter.get('/:productId', productsController.getProductById);
 
 // GET /products/comments
 productsRouter.get('/comments', commentsController.getAllCommentsAllProducts);
+
+// GET /products/comments/:commentId
+productsRouter.get('/comments/:commentId', commentsController.getCommentById);
 
 // /products/:productId/comments
 productsRouter.get(
@@ -24,9 +34,6 @@ productsRouter.get(
 // All operation after that need authorization
 productsRouter.use(authenticate.verifyUser);
 
-// GET /products/own-products
-productsRouter.get('/own-products', productsController.getOwnProducts);
-
 // /products/
 productsRouter
   .route('/')
@@ -34,7 +41,7 @@ productsRouter
     productValidator.validateCreateProduct,
     productsController.createProduct
   )
-  .delete(productsController.deleteAllProducts);
+  .delete(productsController.deleteProducts);
 
 // /products/:productId
 productsRouter

@@ -25,32 +25,39 @@ module.exports.createProduct = (req, res, next) => {
     .catch((err) => next(err));
 };
 
-module.exports.deleteAllProducts = (req, res, next) => {
-  Products.find({ seller: req.user._id })
-    .then((products) => {
-      products.forEach((product) => {
-        Comments.deleteMany({ product: product._id })
-          .then(() => {
-            console.log('Deleted relative comments!');
-          })
-          .catch((err) => next(err));
-
+module.exports.deleteProducts = async (req, res, next) => {
+  try {
+    let deletedCount = 0;
+    if (req.body) {
+      for (product of req.body) {
+        const foundProduct = await Products.findOneAndRemove({
+          seller: req.user._id,
+          _id: product,
+        });
+        if (foundProduct) deletedCount++;
+      }
+    } else {
+      const products = await Products.find({ seller: req.user._id });
+      deletedCount = products.length;
+      for (const product of products) {
+        await Comments.deleteMany({ product: product._id });
         product.images.forEach((image) => {
           fs.unlink(`public/${image}`, (err) => console.log('Error:', err));
         });
-        product.remove().catch((err) => next(err));
-      });
-
-      res
-        .status(200)
-        .json({ success: true, msg: 'Deleted all product successfully!' });
-    })
-    .catch((err) => next(err));
+        await product.remove();
+      }
+    }
+    res.status(200).json({
+      success: true,
+      msg: `Deleted ${deletedCount} products successfully!`,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 module.exports.getOwnProducts = (req, res, next) => {
   Products.find({ seller: req.user._id })
-    .populate('seller', '-__v -admin -address')
     .then((products) => {
       res.status(200).json({
         success: true,

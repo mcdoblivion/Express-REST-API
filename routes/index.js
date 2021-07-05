@@ -11,6 +11,6 @@ router.use('/users', usersRouter);
 router.use('/products', productsRouter);
 router.use('/carts', cartsRouter);
 router.use('/orders', ordersRouter);
-router.use('/upload-image', uploadRouter);
+router.use('/images', uploadRouter);
 
 module.exports = router;

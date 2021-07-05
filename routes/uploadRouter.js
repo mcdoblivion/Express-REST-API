@@ -1,5 +1,6 @@
 const express = require('express');
 const multer = require('multer');
+const fs = require('fs');
 const authenticate = require('../middleware/authenticate');
 
 const storage = multer.diskStorage({
@@ -7,7 +8,10 @@ const storage = multer.diskStorage({
     callback(null, 'public/images');
   },
   filename: (req, file, callback) => {
-    callback(null, Date.now() + '-' + file.originalname);
+    callback(
+      null,
+      req.user._id.toString() + '-' + Date.now() + '-' + file.originalname
+    );
   },
 });
 
@@ -24,13 +28,35 @@ const uploadRouter = express.Router();
 
 uploadRouter.use(authenticate.verifyUser);
 
-// /upload-image
-uploadRouter.post('/', upload.single('imageFile'), (req, res, next) => {
-  res.status(201).json({
-    success: true,
-    msg: 'Upload image successfully to: ' + req.file.path,
-    path: '/images/' + req.file.filename,
-  });
+// POST /images
+uploadRouter.post('/', upload.single('imageFile'), async (req, res, next) => {
+  try {
+    res.status(201).json({
+      success: true,
+      msg: 'Upload image successfully to: ' + req.file.path,
+      path: '/images/' + req.file.filename,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// DELETE /images/:imageName
+uploadRouter.delete('/:imageName', async (req, res, next) => {
+  try {
+    const imageName = req.params.imageName;
+    if (imageName.startsWith(req.user._id.toString())) {
+      fs.unlink(`public/images/${imageName}`, (err) => console.log(err));
+      return res
+        .status(200)
+        .json({ success: true, msg: 'Deleted image successfully!' });
+    }
+    const err = new Error('This image is not yours!');
+    err.status = 403;
+    next(err);
+  } catch (error) {
+    next(error);
+  }
 });
 
 module.exports = uploadRouter;
