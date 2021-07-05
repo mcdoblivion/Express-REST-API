@@ -15,13 +15,21 @@ router.post(
 );
 
 // Login and return JWT token
-router.post('/account/create-jwt', usersController.createJwt);
+router.post(
+  '/account/create-jwt',
+  userValidator.validateCreateToken,
+  usersController.createJwt
+);
 
 // All operation after that need authorization
 router.use(authenticate.verifyUser);
 
 // Change password
-router.put('/account/change-password', usersController.changePassword);
+router.put(
+  '/account/change-password',
+  userValidator.validateChangePassword,
+  usersController.changePassword
+);
 
 // All operation after that need authorization as Admin
 router.use(authenticate.verifyAdmin);
