@@ -16,10 +16,12 @@ const commentSchema = new Schema(
     author: {
       type: mongoose.Types.ObjectId,
       ref: 'Users',
+      required: true,
     },
     product: {
       type: mongoose.Types.ObjectId,
       ref: 'Products',
+      required: true,
     },
   },
   { timestamps: true }
