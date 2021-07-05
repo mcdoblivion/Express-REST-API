@@ -1,7 +1,7 @@
 const express = require('express');
 const cartsRouter = express.Router();
-const cartsController = require('../controllers/cartsController');
-const cartValidator = require('../middleware/validator/cartValidator');
+const controllers = require('../controllers');
+const validator = require('../middleware/validator');
 const authenticate = require('../middleware/authenticate');
 
 cartsRouter.use(authenticate.verifyUser);
@@ -9,14 +9,20 @@ cartsRouter.use(authenticate.verifyUser);
 // /carts/
 cartsRouter
   .route('/')
-  .get(cartsController.getCart)
-  .post(cartValidator.validateCreateCart, cartsController.createCart)
-  .delete(cartsController.deleteCart);
+  .get(controllers.cartsController.getCart)
+  .post(
+    validator.cartValidator.validateCreateCart,
+    controllers.cartsController.createCart
+  )
+  .delete(controllers.cartsController.deleteCart);
 
 // /carts/:productId
 cartsRouter
   .route('/:productId')
-  .delete(cartsController.deleteProductFromCart)
-  .put(cartValidator.validateUpdateCart, cartsController.updateProductQuantity);
+  .delete(controllers.cartsController.deleteProductFromCart)
+  .put(
+    validator.cartValidator.validateUpdateCart,
+    controllers.cartsController.updateProductQuantity
+  );
 
 module.exports = cartsRouter;

@@ -1,34 +1,41 @@
 const express = require('express');
 const productsRouter = express.Router();
-const productsController = require('../controllers/productsController');
-const commentsController = require('../controllers/commentsController');
+const controllers = require('../controllers');
 const authenticate = require('../middleware/authenticate');
-const productValidator = require('../middleware/validator/productValidator');
-const commentValidator = require('../middleware/validator/commentValidator');
+const validator = require('../middleware/validator');
 
 // GET /products[?search=abc]
-productsRouter.get('/', productsController.getProducts);
+productsRouter.get('/', controllers.productsController.getProducts);
 
 // GET /products/own-products
 productsRouter.get(
   '/own-products',
   authenticate.verifyUser,
-  productsController.getOwnProducts
+  controllers.productsController.getOwnProducts
 );
 
 // GET /products/:productId
-productsRouter.get('/:productId', productsController.getProductById);
+productsRouter.get(
+  '/:productId',
+  controllers.productsController.getProductById
+);
 
 // GET /products/comments
-productsRouter.get('/comments', commentsController.getAllCommentsAllProducts);
+productsRouter.get(
+  '/comments',
+  controllers.commentsController.getAllCommentsAllProducts
+);
 
 // GET /products/comments/:commentId
-productsRouter.get('/comments/:commentId', commentsController.getCommentById);
+productsRouter.get(
+  '/comments/:commentId',
+  controllers.commentsController.getCommentById
+);
 
 // /products/:productId/comments
 productsRouter.get(
   '/:productId/comments',
-  commentsController.getAllCommentsOneProduct
+  controllers.commentsController.getAllCommentsOneProduct
 );
 
 // All operation after that need authorization
@@ -38,29 +45,35 @@ productsRouter.use(authenticate.verifyUser);
 productsRouter
   .route('/')
   .post(
-    productValidator.validateCreateProduct,
-    productsController.createProduct
+    validator.productValidator.validateCreateProduct,
+    controllers.productsController.createProduct
   )
-  .delete(productsController.deleteProducts);
+  .delete(controllers.productsController.deleteProducts);
 
 // /products/:productId
 productsRouter
   .route('/:productId')
-  .put(productValidator.validateUpdateProduct, productsController.updateProduct)
-  .delete(productsController.deleteProduct);
+  .put(
+    validator.productValidator.validateUpdateProduct,
+    controllers.productsController.updateProduct
+  )
+  .delete(controllers.productsController.deleteProduct);
 
 // /products/:productId/comments
 productsRouter
   .route('/:productId/comments')
   .post(
-    commentValidator.validateCreateComment,
-    commentsController.createComment
+    validator.commentValidator.validateCreateComment,
+    controllers.commentsController.createComment
   );
 
 // /products/:productId/comments/:commentId
 productsRouter
   .route('/:productId/comments/:commentId')
-  .put(commentValidator.validateUpdateComment, commentsController.updateComment)
-  .delete(commentsController.deleteComment);
+  .put(
+    validator.commentValidator.validateUpdateComment,
+    controllers.commentsController.updateComment
+  )
+  .delete(controllers.commentsController.deleteComment);
 
 module.exports = productsRouter;

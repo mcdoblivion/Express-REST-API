@@ -1,26 +1,27 @@
 const express = require('express');
 const ordersRouter = express.Router();
-const ordersController = require('../controllers/ordersController');
-
+const controllers = require('../controllers');
 const authenticate = require('../middleware/authenticate');
-const orderValidator = require('../middleware/validator/orderValidator');
+const validator = require('../middleware/validator');
 
 ordersRouter.use(authenticate.verifyUser);
 
 // GET /orders[?status=-1/0/1, sellOrder=true]
-ordersRouter.get('/', ordersController.getOrders);
+ordersRouter.get('/', controllers.ordersController.getOrders);
 
 // POST /orders
 ordersRouter.post(
   '/',
-  orderValidator.validateOrder,
-  ordersController.createOrder
+  validator.orderValidator.validateOrder,
+  controllers.ordersController.createOrder
 );
 
 // GET /orders/:orderId
-ordersRouter.get('/:orderId', ordersController.getOrderById);
+ordersRouter.get('/:orderId', controllers.ordersController.getOrderById);
 
 // PUT /orders/:orderId[?operation=cancel/confirm]
-ordersRouter.route('/:orderId').put(ordersController.updateOrderStatus);
+ordersRouter
+  .route('/:orderId')
+  .put(controllers.ordersController.updateOrderStatus);
 
 module.exports = ordersRouter;
