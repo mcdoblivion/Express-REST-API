@@ -1,6 +1,6 @@
-const Users = require('../models/users');
 const passport = require('passport');
 const authenticate = require('../middleware/authenticate');
+const { usersActions } = require('../actions');
 
 module.exports.getJwtInfo = (req, res, next) => {
   passport.authenticate('jwt', { session: false }, (err, user, info) => {
@@ -20,57 +20,58 @@ module.exports.getJwtInfo = (req, res, next) => {
   })(req, res, next);
 };
 
-module.exports.getAllUsers = (req, res, next) => {
-  Users.find()
-    .then((users) => {
-      return res.status(200).json({ success: true, data: users });
-    })
-    .catch((err) => next(err));
+module.exports.getAllUsers = async (req, res, next) => {
+  try {
+    const users = await usersActions.getAllUsers();
+    return res.status(200).json({ success: true, data: users });
+  } catch (error) {
+    next(error);
+  }
 };
 
-module.exports.getUserById = (req, res, next) => {
-  Users.findById(req.params.userId)
-    .then((user) => {
-      return res.status(200).json({ success: true, data: user });
-    })
-    .catch((err) => next(err));
+module.exports.getUserById = async (req, res, next) => {
+  try {
+    const user = usersActions.getUserById(req.params.userId);
+    return res.status(200).json({ success: true, data: user });
+  } catch (error) {
+    next(error);
+  }
 };
 
-module.exports.deleteUser = (req, res, next) => {
-  Users.findByIdAndDelete(req.params.userId)
-    .then((user) => {
-      if (!user) {
-        const err = new Error('User not found!');
-        err.status = 404;
-        next(err);
-      }
+module.exports.deleteUser = async (req, res, next) => {
+  try {
+    const user = await usersActions.deleteUserById(req.params.userId);
+    if (!user) {
+      const err = new Error('User not found!');
+      err.status = 404;
+      next(err);
+    }
+    res.status(200).json({
+      success: true,
+      msg: `Deleted user ${user.username} successfully!`,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports.createUserAccount = async (req, res, next) => {
+  try {
+    await usersActions.createNewUser({ ...req.body }, req.body.password);
+
+    passport.authenticate('local')(req, res, () => {
       res
         .status(200)
-        .json({ success: true, msg: 'Deleted user successfully!' });
-    })
-    .catch((err) => next(err));
-};
-
-module.exports.createUserAccount = (req, res, next) => {
-  Users.register(new Users({ ...req.body }), req.body.password, (err, user) => {
-    if (err) next(err);
-
-    user
-      .save()
-      .then(() => {
-        passport.authenticate('local')(req, res, () => {
-          res
-            .status(200)
-            .json({ success: true, msg: 'Registration successfully!' });
-        });
-      })
-      .catch((err) => next(err));
-  });
+        .json({ success: true, msg: 'Registration successfully!' });
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 module.exports.createJwt = (req, res, next) => {
   passport.authenticate('local', (err, user, info) => {
-    if (err) return next(err);
+    if (err) next(err);
 
     console.log(req.user);
     if (!user) {
@@ -79,6 +80,7 @@ module.exports.createJwt = (req, res, next) => {
       next(err);
     }
 
+    // Load user info to request
     req.logIn(user, (err) => {
       if (err) {
         next(err);
@@ -94,15 +96,17 @@ module.exports.createJwt = (req, res, next) => {
   })(req, res, next);
 };
 
-module.exports.changePassword = (req, res, next) => {
-  Users.findById(req.user._id)
-    .then((user) => {
-      return user.changePassword(req.body.oldPassword, req.body.newPassword);
-    })
-    .then(() => {
-      return res
-        .status(200)
-        .json({ success: true, msg: 'Changed password successfully!' });
-    })
-    .catch((err) => next(err));
+module.exports.changePassword = async (req, res, next) => {
+  try {
+    await usersActions.changePassword(
+      req.user._id,
+      req.body.oldPassword,
+      req.body.newPassword
+    );
+    return res
+      .status(200)
+      .json({ success: true, msg: 'Changed password successfully!' });
+  } catch (error) {
+    next(error);
+  }
 };

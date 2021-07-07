@@ -20,12 +20,6 @@ productsRouter.get(
   controllers.productsController.getProductById
 );
 
-// GET /products/comments
-productsRouter.get(
-  '/comments',
-  controllers.commentsController.getAllCommentsAllProducts
-);
-
 // GET /products/comments/:commentId
 productsRouter.get(
   '/comments/:commentId',

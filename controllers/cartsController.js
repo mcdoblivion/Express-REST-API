@@ -1,106 +1,108 @@
-const CartItems = require('../models/cartItems');
+const { cartsActions } = require('../actions');
 
-module.exports.getCart = (req, res, next) => {
-  CartItems.find({ user: req.user._id })
-    .populate('product')
-    .then((cartItems) => {
-      return res.status(200).json({ success: true, data: cartItems });
-    })
-    .catch((err) => next(err));
+module.exports.getCart = async (req, res, next) => {
+  try {
+    const cartItems = await cartsActions.getCartItemsByUserId(req.user._id);
+    return res.status(200).json({ success: true, data: cartItems });
+  } catch (error) {
+    next(error);
+  }
 };
 
-module.exports.createCart = (req, res, next) => {
-  CartItems.findOne({
-    user: req.user._id,
-    product: req.body.product,
-  })
-    .then((cartItem) => {
-      if (cartItem) {
-        cartItem.quantity += req.body.quantity;
-        cartItem.save();
-        return res.status(201).json({
-          success: true,
-          msg: 'Add to cart successfully!',
-          data: cartItem,
-        });
-      }
-      return CartItems.create({
-        ...req.body,
-        user: req.user._id,
+module.exports.createCart = async (req, res, next) => {
+  try {
+    // Update quantity if item already exist
+    const cartItem = await cartsActions.deleteCartItemByUserIdAndProductId(
+      req.user._id,
+      req.body.product
+    );
+
+    if (cartItem) {
+      await cartsActions.updateCartItem(cartItem._id, {
+        quantity: cartItem.quantity + req.body.quantity,
       });
-    })
-    .then((cartItem) => {
+
       return res.status(201).json({
         success: true,
         msg: 'Add to cart successfully!',
         data: cartItem,
       });
-    })
-    .catch((err) => next(err));
-};
+    }
 
-module.exports.deleteCart = (req, res, next) => {
-  if (req.body) {
-    CartItems.find({ user: req.user._id })
-      .then((items) => {
-        items.forEach((item) => {
-          if (req.body.includes(item.product.toString())) {
-            item.remove();
-          }
-        });
+    // Or create new cart item
+    const newCartItem = await cartsActions.createCartItem({
+      ...req.body,
+      user: req.user._id,
+    });
 
-        return res.status(200).json({
-          success: true,
-          msg: 'Deleted products from cart!',
-        });
-      })
-      .catch((err) => next(err));
-  } else {
-    CartItems.deleteMany({ user: req.user._id })
-      .then((response) => {
-        return res.status(200).json({
-          success: true,
-          msg: `Deleted ${response.deletedCount} products from cart!`,
-        });
-      })
-      .catch((err) => next(err));
+    return res.status(201).json({
+      success: true,
+      msg: 'Add to cart successfully!',
+      data: newCartItem,
+    });
+  } catch (error) {
+    next(error);
   }
 };
 
-module.exports.deleteProductFromCart = (req, res, next) => {
-  CartItems.findOne({ user: req.user._id, product: req.params.productId })
-    .then((cartItem) => {
-      if (!cartItem) {
-        const err = new Error('Product is not in cart!');
-        err.status = 404;
-        next(err);
+module.exports.deleteCart = async (req, res, next) => {
+  try {
+    if (req.body) {
+      let deletedCount = 0;
+      for (const item of req.body) {
+        const deletedItem =
+          await cartsActions.deleteCartItemByUserIdAndProductId(
+            req.user._id,
+            item
+          );
+        if (deletedItem) deletedCount++;
       }
-      return cartItem.remove();
-    })
-    .then(() => {
-      return res
-        .status(200)
-        .json({ success: true, msg: 'Deleted product from cart!' });
-    })
-    .catch((err) => next(err));
+
+      return res.status(200).json({
+        success: true,
+        msg: `Deleted ${deletedCount} products from cart!`,
+      });
+    } else {
+      const deletedCount = cartsActions.deleteAllCartItems(req.user._id);
+      return res.status(200).json({
+        success: true,
+        msg: `Deleted ${deletedCount} products from cart!`,
+      });
+    }
+  } catch (error) {
+    next(error);
+  }
 };
 
-module.exports.updateProductQuantity = (req, res, next) => {
-  CartItems.findOne({ user: req.user._id, product: req.params.productId })
-    .then((cartItem) => {
-      if (!cartItem) {
-        const err = new Error('Product is not in cart!');
-        err.status = 404;
-        next(err);
-      }
-      return CartItems.findByIdAndUpdate(cartItem._id, {
-        $set: { quantity: req.body.quantity },
-      });
-    })
-    .then(() => {
-      return res
-        .status(200)
-        .json({ success: true, msg: 'Updated cart successfully!' });
-    })
-    .catch((err) => next(err));
+module.exports.deleteProductFromCart = async (req, res, next) => {
+  try {
+    const deletedItem = await cartsActions.deleteCartItemByUserIdAndProductId(
+      req.user._id,
+      req.params.productId
+    );
+    if (!deletedItem) {
+      const err = new Error('Product is not in cart!');
+      err.status = 404;
+      next(err);
+    }
+
+    return res
+      .status(200)
+      .json({ success: true, msg: 'Deleted 1 product from cart!' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports.updateProductQuantity = async (req, res, next) => {
+  try {
+    await cartsActions.updateCartItem(req.params.productId, {
+      quantity: req.body.quantity,
+    });
+    return res
+      .status(200)
+      .json({ success: true, msg: 'Updated cart successfully!' });
+  } catch (error) {
+    next(error);
+  }
 };
