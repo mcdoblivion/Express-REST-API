@@ -6,29 +6,35 @@
 
 #### Users routes:
 
-- GET /users - lấy thông tin tất cả users, cần quyền Admin
+- GET /users/jwt-info - lấy info user hiện tại nếu token hợp lệ
 
-- GET/ DELETE /users/:userId - xoá user có \_id = :userId
+- POST /users/account - đăng ký tài khoản với username và password
 
-- POST /users/account - đăng ký tài khoản
-
-- POST /users/account/create-jwt - lấy JWT để đăng nhập
+- POST /users/account/create-jwt - lấy token để đăng nhập bằng JWT
 
 - POST /users/change-password - đổi mật khẩu cho user đang đăng nhập
 
-- GET /users/jwt-info - kiểm tra token đang dùng có hợp lệ không
+- GET /users - lấy thông tin tất cả users, cần quyền Admin
+
+- GET/ DELETE /users/:userId - xoá user có \_id = :userId, cần quyền Admin
 
 #### Products routes:
 
+- GET /products[?search=abc] - tìm kiếm sản phẩm với keyword, hoặc lấy tất cả sản phẩm
+
 - GET /products/own-products - lấy toàn bộ sản phẩm thuộc sở hữu của user đang đăng nhập
 
-- GET / POST / DELETE /products - lấy toàn bộ sản phẩm có trên hệ thống / thêm 1 sản phẩm / xoá tất cả sản phẩm thuộc sở hữu của user đang đăng nhập
+- GET /products/:productId - lấy sản phẩm có \_id=:productId
 
-- GET / PUT / DELETE /products/:productId - lấy / sửa / xoá sản phẩm có \_id = :productId. Sản phẩm bị sửa / xoá cần thuộc sở hữu của user đang đăng nhập
+- GET /products/comments/:commentId - lấy thông tin comment có \_id=commentId
 
-- GET /products/comments - lấy toàn bộ comments của tất cả bài viết
+- GET /products/:productId/comments - lấy toàn bộ comments của sản phẩm có \_id=productId
 
-- GET / POST /products/:productId/comments - lấy tất cả comments / thêm 1 comment vào sản phẩm có \_id = :productId. POST chỉ khả dụng với user đã đăng nhập
+- POST / DELETE /products - thêm 1 sản phẩm / xoá tất cả sản phẩm thuộc sở hữu của user đang đăng nhập
+
+- PUT / DELETE /products/:productId - sửa / xoá sản phẩm có \_id = :productId. Sản phẩm bị sửa / xoá cần thuộc sở hữu của user đang đăng nhập
+
+- POST /products/:productId/comments - thêm 1 comment vào sản phẩm có \_id = :productId. POST chỉ khả dụng với user đã đăng nhập và đã mua sản phẩm thành công
 
 - PUT / DELETE /products/:productId/comments/:commentId - sửa / xoá comment có \_id = :commentId của sản phẩm có \_id = :productId. Comment bị sửa / xoá cần thuộc sở hữu của user đang đăng nhập
 
@@ -40,15 +46,22 @@
 
 #### Orders routes
 
-- GET / POST /orders[?status=-1/0/1, sellOrder=true] - lấy tất cả thông tin đơn mua hoặc lấy theo trạng thái / thêm 1 đơn mua. Lấy thông tin đơn bán sử dụng thêm tham số sellOrder=true. Cần đăng nhập
+- GET /orders[?status=-1/0/1, sellOrder=true] - lấy tất cả thông tin đơn mua hoặc lấy theo trạng thái. Lấy thông tin đơn bán sử dụng thêm tham số sellOrder=true
 
-- GET /orders/:orderId - lấy thông tin đơn hàng có \_id=:orderId, không cần đăng nhập
+- POST /orders - tạo một đơn hàng
 
-- PUT /orders/:orderId?operation=cancel/confirm - thay đổi trạng thái đơn hàng (huỷ/xác nhận). Cần đăng nhập
+- GET /orders/:orderId - lấy thông tin đơn hàng có \_id=:orderId
+
+- PUT /orders/:orderId?operation=cancel/confirm - thay đổi trạng thái đơn hàng (huỷ/xác nhận)
 
 #### Upload routes
 
-- POST /upload-image - tải ảnh lên server và nhận lại đường dẫn, dành cho người đăng sản phẩm
+- POST /images - tải ảnh lên server và nhận lại đường dẫn, dành cho người đăng sản phẩm
+
+- DELETE /images/:imageName - xoá ảnh có tên imageName, ảnh bị xoá cần thuộc sở hữu của user đang đăng nhập
+
+=======================================
+(All below is old)
 
 ## Update bài tập 6: Tiếp tục từ phần 5, thêm phần quản trị users (thêm, sửa, xóa). Sau đó thêm phần login cho user để user có thể thêm sửa xóa sản phẩm.
 
