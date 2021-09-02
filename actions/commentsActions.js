@@ -37,7 +37,7 @@ const deleteCommentById = async (commentId) => {
 };
 
 const deleteCommentsByProductId = async (productId) => {
-  await Comments.deleteMany({ product: product._id });
+  await Comments.deleteMany({ product: productId })
 };
 
 module.exports = {
