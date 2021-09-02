@@ -1,5 +1,5 @@
 const fs = require('fs');
-const { commentsActions } = require('.');
+const commentsActions = require('./commentsActions')
 const { Products } = require('../models');
 
 const getProducts = async (search) => {
