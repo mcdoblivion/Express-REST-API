@@ -11,7 +11,7 @@ module.exports.getJwtInfo = (req, res, next) => {
     if (!user) {
       const err = new Error(info);
       err.status = 401;
-      next(err);
+      return next(err);
     }
 
     return res
