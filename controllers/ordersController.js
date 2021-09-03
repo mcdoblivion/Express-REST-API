@@ -2,27 +2,13 @@ const { ordersActions, productsActions, cartsActions } = require('../actions');
 const config = require('../config');
 
 module.exports.getOrders = async (req, res, next) => {
+  const { status, isSellOrder } = req.query
+  const userId = req.user._id
   try {
-    const orders =
-      req.query.sellOrder === 'true'
-        ? await ordersActions.getSellOrderByStatus(
-            req.query.status,
-            req.user._id
-          )
-        : await ordersActions.getBuyOrderByStatus(
-            req.query.status,
-            req.user._id
-          );
-
-    const resultPromise = orders.map(async (order) => {
-      const orderItems = await ordersActions.getItemsByOrderId(order._id);
-      return { ...order.toObject(), orderItems: orderItems };
-    });
-
-    const result = await Promise.all(resultPromise);
-    return res.status(200).json({ success: true, data: result });
+      const orders = await ordersActions.getOrderByStatus(status, userId, isSellOrder)
+      return res.status(200).json({ success: true, data: orders })
   } catch (error) {
-    next(error);
+      next(error)
   }
 };
 
