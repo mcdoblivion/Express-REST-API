@@ -18,9 +18,13 @@ const createCartItem = async (newCartItem) => {
   return cartItem;
 };
 
-const updateCartItem = async (itemId, newCartItem) => {
-  await CartItems.updateOne({ _id: itemId }, { $set: newCartItem });
-};
+const updateCartItem = async (productId, newCartItem) => {
+    return await CartItems.findOneAndUpdate(
+        { product: productId },
+        { $set: newCartItem },
+        { new: true }
+    )
+}
 
 const deleteCartItemByUserIdAndProductId = async (userId, productId) => {
   const item = await CartItems.findOneAndDelete({
