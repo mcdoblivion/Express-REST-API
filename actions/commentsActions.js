@@ -1,11 +1,11 @@
 const { Comments } = require('../models');
 
 const getCommentsByProductId = async (productId) => {
-  const comments = await Comments.find({ product: productId }).populate(
-    'author',
-    '-__v -phoneNumber -admin -address'
-  );
-  return comments;
+  const comments = await Comments.find({ product: productId })
+      .populate('author', '-__v -phoneNumber -admin -address')
+      .sort({ _id: -1 })
+      .lean()
+  return comments
 };
 
 const getCommentById = async (commentId) => {

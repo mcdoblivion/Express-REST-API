@@ -1,14 +1,14 @@
 const { Users } = require('../models');
 
 const getAllUsers = async () => {
-  const users = await Users.find({});
-  return users;
-};
+    const users = await Users.find({}).sort({ _id: -1 }).lean()
+    return users
+}
 
 const getUserById = async (userId) => {
-  const user = await Users.findById(userId);
-  return user;
-};
+    const user = await Users.findById(userId).lean()
+    return user
+}
 
 const deleteUserById = async (userId) => {
   const user = await Users.findByIdAndDelete(userId);
