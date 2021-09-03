@@ -1,50 +1,25 @@
 const { OrderItems, Orders } = require('../models');
+const Bluebird = require('bluebird')
 
 const getOrderById = async (orderId) => {
-  const order = Orders.findById(orderId);
-  return order;
-};
-
-const getBuyOrderByStatus = async (status, customerId) => {
-    if (status) {
-        const orders = await Orders.find({
-            status: status,
-            customer: customerId,
-        })
-            .populate('seller', '-__v -admin')
-            .populate('customer', '-__v -admin')
-            .sort({ _id: -1 })
-            .lean()
-        return orders
-    } else {
-        const orders = await Orders.find({ customer: customerId })
-            .populate('seller', '-__v -admin')
-            .populate('customer', '-__v -admin')
-            .sort({ _id: -1 })
-            .lean()
-        return orders
-    }
+    const order = Orders.findById(orderId)
+    return order
 }
 
-const getSellOrderByStatus = async (status, customerId) => {
-    if (status) {
-        const orders = await Orders.find({
-            status: status,
-            seller: customerId,
-        })
-            .populate('seller', '-__v -admin')
-            .populate('customer', '-__v -admin')
-            .sort({ _id: -1 })
-            .lean()
-        return orders
-    } else {
-        const orders = await Orders.find({ seller: customerId })
-            .populate('seller', '-__v -admin')
-            .populate('customer', '-__v -admin')
-            .sort({ _id: -1 })
-            .lean()
-        return orders
-    }
+const getOrderByStatus = async (status, customerId, isSellOrder) => {
+    let query = {}
+    isSellOrder === 'true' ? (query = { seller: customerId }) : (query = { customer: customerId })
+    status && (query.status = status)
+
+    const orders = await Orders.find(query)
+        .populate('seller', '-__v -admin')
+        .populate('customer', '-__v -admin')
+        .sort({ _id: -1 })
+        .lean()
+    return await Bluebird.map(orders, async (order) => {
+        const orderItems = await OrderItems.find({ order: order._id }).populate('product').lean()
+        return { ...order, orderItems }
+    })
 }
 
 const getItemsByOrderId = async (orderId) => {
@@ -67,27 +42,26 @@ const getOrderItemsByProductId = async (productId) => {
 }
 
 const createOrder = async (newOrder) => {
-  const order = await Orders.create(newOrder);
-  return order;
-};
+    const order = await Orders.create(newOrder)
+    return order
+}
 
 const updateOrder = async (orderId, updatedOrder) => {
-  await Orders.updateOne({ _id: orderId }, { $set: updatedOrder });
-};
+    await Orders.updateOne({ _id: orderId }, { $set: updatedOrder })
+}
 
 const createOrderItem = async (newItem) => {
-  const item = await OrderItems.create(newItem);
-  return item;
-};
+    const item = await OrderItems.create(newItem)
+    return item
+}
 
 module.exports = {
-  getOrderById,
-  getBuyOrderByStatus,
-  getSellOrderByStatus,
-  getItemsByOrderId,
-  getOrderItemsByProductId,
-  getOrderItemsByProductId,
-  createOrder,
-  updateOrder,
-  createOrderItem,
-};
+    getOrderById,
+    getOrderByStatus,
+    getItemsByOrderId,
+    getOrderItemsByProductId,
+    getOrderItemsByProductId,
+    createOrder,
+    updateOrder,
+    createOrderItem,
+}
