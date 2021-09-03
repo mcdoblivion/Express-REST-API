@@ -6,51 +6,65 @@ const getOrderById = async (orderId) => {
 };
 
 const getBuyOrderByStatus = async (status, customerId) => {
-  if (status) {
-    const orders = await Orders.find({
-      status: status,
-      customer: customerId,
-    })
-      .populate('seller', '-__v -admin')
-      .populate('customer', '-__v -admin');
-    return orders;
-  } else {
-    const orders = await Orders.find({ customer: customerId })
-      .populate('seller', '-__v -admin')
-      .populate('customer', '-__v -admin');
-    return orders;
-  }
-};
+    if (status) {
+        const orders = await Orders.find({
+            status: status,
+            customer: customerId,
+        })
+            .populate('seller', '-__v -admin')
+            .populate('customer', '-__v -admin')
+            .sort({ _id: -1 })
+            .lean()
+        return orders
+    } else {
+        const orders = await Orders.find({ customer: customerId })
+            .populate('seller', '-__v -admin')
+            .populate('customer', '-__v -admin')
+            .sort({ _id: -1 })
+            .lean()
+        return orders
+    }
+}
 
 const getSellOrderByStatus = async (status, customerId) => {
-  if (status) {
-    const orders = await Orders.find({
-      status: status,
-      seller: customerId,
-    })
-      .populate('seller', '-__v -admin')
-      .populate('customer', '-__v -admin');
-    return orders;
-  } else {
-    const orders = await Orders.find({ seller: customerId })
-      .populate('seller', '-__v -admin')
-      .populate('customer', '-__v -admin');
-    return orders;
-  }
-};
+    if (status) {
+        const orders = await Orders.find({
+            status: status,
+            seller: customerId,
+        })
+            .populate('seller', '-__v -admin')
+            .populate('customer', '-__v -admin')
+            .sort({ _id: -1 })
+            .lean()
+        return orders
+    } else {
+        const orders = await Orders.find({ seller: customerId })
+            .populate('seller', '-__v -admin')
+            .populate('customer', '-__v -admin')
+            .sort({ _id: -1 })
+            .lean()
+        return orders
+    }
+}
 
 const getItemsByOrderId = async (orderId) => {
-  const items = await OrderItems.find({ order: orderId }).populate('product');
-  return items;
-};
+    const items = await OrderItems.find({ order: orderId })
+        .populate('product')
+        .sort({ _id: -1 })
+        .lean()
+    return items
+}
 
 const getOrderItemsByProductId = async (productId) => {
-  const orderItems = await OrderItems.find({
-    product: productId,
-  }).populate('order');
+    const orderItems = await OrderItems.find({
+        product: productId,
+    })
+        .populate('order')
+        .sort({ _id: -1 })
+        .lean()
 
-  return orderItems;
-};
+    return orderItems
+}
 
 const createOrder = async (newOrder) => {
   const order = await Orders.create(newOrder);

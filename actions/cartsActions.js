@@ -1,26 +1,33 @@
 const { CartItems } = require('../models');
 
 const getCartItemsByUserId = async (userId) => {
-  const items = await CartItems.find({ user: userId }).populate('product');
-  return items;
-};
+    const items = await CartItems.find({ user: userId })
+        .populate('product')
+        .sort({ _id: -1 })
+        .lean()
+    return items
+}
 
 const getCartItemByUserIdAndProductId = async (userId, productId) => {
-  const cartItem = CartItems.findOne({
-    user: userId,
-    product: productId,
-  });
-  return cartItem;
-};
+    const cartItem = CartItems.findOne({
+        user: userId,
+        product: productId,
+    }).lean()
+    return cartItem
+}
 
 const createCartItem = async (newCartItem) => {
-  const cartItem = await CartItems.create(newCartItem);
-  return cartItem;
-};
+    const cartItem = new CartItems(newCartItem)
+    return await cartItem.save()
+}
 
-const updateCartItem = async (itemId, newCartItem) => {
-  await CartItems.updateOne({ _id: itemId }, { $set: newCartItem });
-};
+const updateCartItem = async (productId, newCartItem) => {
+    return await CartItems.findOneAndUpdate(
+        { product: productId },
+        { $set: newCartItem },
+        { new: true }
+    )
+}
 
 const deleteCartItemByUserIdAndProductId = async (userId, productId) => {
   const item = await CartItems.findOneAndDelete({

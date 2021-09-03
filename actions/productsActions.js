@@ -3,24 +3,24 @@ const commentsActions = require('./commentsActions')
 const { Products } = require('../models');
 
 const getProducts = async (search) => {
-  const products = await Products.find(
-    search ? { $text: { $search: search } } : {}
-  ).populate('seller', '-__v -phoneNumber -admin -address');
-  return products;
-};
+    const products = await Products.find(search ? { $text: { $search: search } } : {})
+        .populate('seller', '-__v -phoneNumber -admin -address')
+        .sort({ _id: -1 })
+        .lean()
+    return products
+}
 
 const getProductsBySellerId = async (sellerId) => {
-  const products = await Products.find({ seller: sellerId });
-  return products;
-};
+    const products = await Products.find({ seller: sellerId }).sort({ _id: -1 }).lean()
+    return products
+}
 
 const getProductById = async (productId) => {
-  const product = await Products.findById(productId).populate(
-    'seller',
-    '-__v -admin -address'
-  );
-  return product;
-};
+    const product = await Products.findById(productId)
+        .populate('seller', '-__v -admin -address')
+        .lean()
+    return product
+}
 
 const createProduct = async (product) => {
   const newProduct = await Products.create(product);

@@ -96,12 +96,12 @@ module.exports.deleteProductFromCart = async (req, res, next) => {
 
 module.exports.updateProductQuantity = async (req, res, next) => {
   try {
-    await cartsActions.updateCartItem(req.params.productId, {
-      quantity: req.body.quantity,
-    });
+    const cartItem = await cartsActions.updateCartItem(req.params.productId, {
+        quantity: req.body.quantity,
+    })
     return res
-      .status(200)
-      .json({ success: true, msg: 'Updated cart successfully!' });
+        .status(200)
+        .json({ success: true, msg: 'Updated cart successfully!', data: { cartItem } })
   } catch (error) {
     next(error);
   }
