@@ -27,10 +27,23 @@ const changePassword = async (userId, oldPassword, newPassword) => {
   await user.changePassword(oldPassword, newPassword);
 };
 
+const updateInfo = async (userId, newInfo) => {
+  const { firstName, lastName, phoneNumber, address } = newInfo
+  const user = await Users.findByIdAndUpdate(
+    userId,
+    {
+      $set: { firstName, lastName, phoneNumber, address },
+    },
+    { new: true }
+  ).lean()
+  return user
+}
+
 module.exports = {
   getAllUsers,
   getUserById,
   deleteUserById,
   createNewUser,
   changePassword,
-};
+  updateInfo,
+}
