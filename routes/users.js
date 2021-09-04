@@ -1,46 +1,53 @@
 var express = require('express');
 var router = express.Router();
-const controllers = require('../controllers');
-const validator = require('../middleware/validator');
-const authenticate = require('../middleware/authenticate');
+const { usersController } = require('../controllers')
+const { userValidator } = require('../middleware/validator')
+const authenticate = require('../middleware/authenticate')
 
 // Check JWT
-router.get('/jwt-info', controllers.usersController.getJwtInfo);
+router.get('/jwt-info', usersController.getJwtInfo)
 
 // Register user
 router.post(
   '/account',
-  validator.userValidator.validateCreateAccount,
-  controllers.usersController.createUserAccount
-);
+  userValidator.validateCreateAccount,
+  usersController.createUserAccount
+)
 
 // Login and return JWT token
 router.post(
   '/account/create-jwt',
-  validator.userValidator.validateCreateToken,
-  controllers.usersController.createJwt
-);
+  userValidator.validateCreateToken,
+  usersController.createJwt
+)
 
 // All operation after that need authorization
-router.use(authenticate.verifyUser);
+router.use(authenticate.verifyUser)
+
+// Change info
+router.put(
+  '/account',
+  userValidator.validateUpdateInfo,
+  usersController.updateInfo
+)
 
 // Change password
 router.put(
   '/account/change-password',
-  validator.userValidator.validateChangePassword,
-  controllers.usersController.changePassword
-);
+  userValidator.validateChangePassword,
+  usersController.changePassword
+)
 
 // All operation after that need authorization as Admin
-router.use(authenticate.verifyAdmin);
+router.use(authenticate.verifyAdmin)
 
 // GET all users, need Admin permission
-router.get('/', controllers.usersController.getAllUsers);
+router.get('/', usersController.getAllUsers)
 
 // GET / DELETE specific user with id, need Admin permission
 router
   .route('/:userId')
-  .get(controllers.usersController.getUserById)
-  .delete(controllers.usersController.deleteUser);
+  .get(usersController.getUserById)
+  .delete(usersController.deleteUser)
 
 module.exports = router;
