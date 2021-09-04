@@ -10,6 +10,8 @@
 
 - POST /users/account - đăng ký tài khoản với username và password
 
+- PUT /users/account - cập nhật thông tin user 
+
 - POST /users/account/create-jwt - lấy token để đăng nhập bằng JWT
 
 - POST /users/change-password - đổi mật khẩu cho user đang đăng nhập
