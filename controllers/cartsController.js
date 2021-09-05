@@ -83,7 +83,7 @@ module.exports.deleteProductFromCart = async (req, res, next) => {
     if (!deletedItem) {
       const err = new Error('Product is not in cart!');
       err.status = 404;
-      next(err);
+      return next(err);
     }
 
     return res

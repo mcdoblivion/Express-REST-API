@@ -42,7 +42,7 @@ exports.deleteUser = async (req, res, next) => {
     if (!user) {
       const err = new Error('User not found!')
       err.status = 404
-      next(err)
+      return next(err)
     }
     res.status(200).json({
       success: true,
@@ -67,19 +67,19 @@ exports.createUserAccount = async (req, res, next) => {
 
 exports.createJwt = (req, res, next) => {
   passport.authenticate('local', (err, user, info) => {
-    if (err) next(err)
+    if (err) return next(err)
 
     console.log(req.user)
     if (!user) {
       const err = new Error(info)
       err.status = 401
-      next(err)
+      return next(err)
     }
 
     // Load user info to request
     req.logIn(user, (err) => {
       if (err) {
-        next(err)
+        return next(err)
       }
     })
 

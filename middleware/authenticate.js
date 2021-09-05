@@ -39,6 +39,6 @@ exports.verifyAdmin = (req, res, next) => {
   else {
     var err = new Error('You are not authorized to do this operation!');
     err.status = 403;
-    next(err);
+    return next(err);
   }
 };

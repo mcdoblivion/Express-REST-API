@@ -14,7 +14,7 @@ module.exports.validateCreateCart = (req, res, next) => {
   if (validateResult.error) {
     const err = new Error(validateResult.error);
     err.status = 400;
-    next(err);
+    return next(err);
   }
   next();
 };
@@ -24,7 +24,7 @@ module.exports.validateUpdateCart = (req, res, next) => {
   if (validateResult.error) {
     const err = new Error(validateResult.error);
     err.status = 400;
-    next(err);
+    return next(err);
   }
   next();
 };

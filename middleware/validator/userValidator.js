@@ -49,7 +49,7 @@ const _validate = (req, res, next, schema) => {
   if (validateResult.error) {
     const err = new Error(validateResult.error)
     err.status = 400
-    next(err)
+    return next(err)
   }
   next()
 }

@@ -53,7 +53,7 @@ uploadRouter.delete('/:imageName', async (req, res, next) => {
     }
     const err = new Error('This image is not yours!');
     err.status = 403;
-    next(err);
+    return next(err);
   } catch (error) {
     next(error);
   }

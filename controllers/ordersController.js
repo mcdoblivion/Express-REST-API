@@ -82,7 +82,7 @@ module.exports.updateOrderStatus = async (req, res, next) => {
   if (req.query.operation !== 'cancel' && req.query.operation !== 'confirm') {
     const err = new Error('Operation must be cancel/confirm!');
     err.status = 400;
-    next(err);
+    return next(err);
   }
   try {
     const order = await ordersActions.getOrderById(req.params.orderId);
@@ -92,7 +92,7 @@ module.exports.updateOrderStatus = async (req, res, next) => {
     ) {
       const err = new Error('This order is not yours!');
       err.status = 403;
-      next(err);
+      return next(err);
     }
 
     if (order.status === config.productStatus.waitSellerConfirm) {
@@ -119,7 +119,7 @@ module.exports.updateOrderStatus = async (req, res, next) => {
         if (order.seller.toString() !== req.user._id.toString()) {
           const err = new Error('This order is not yours!');
           err.status = 403;
-          next(err);
+          return next(err);
         } else {
           // Update order status to delivered
           await ordersActions.updateOrder(order._id, {
@@ -136,11 +136,11 @@ module.exports.updateOrderStatus = async (req, res, next) => {
     } else if (order.status === config.productStatus.delivered) {
       const err = new Error('This order has been delivered!');
       err.status = 403;
-      next(err);
+      return next(err);
     } else {
       const err = new Error('This order has been canceled!');
       err.status = 403;
-      next(err);
+      return next(err);
     }
   } catch (error) {
     next(error);

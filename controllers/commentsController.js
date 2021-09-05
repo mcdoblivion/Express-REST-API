@@ -36,7 +36,7 @@ module.exports.createComment = async (req, res, next) => {
         'The product with id ' + req.params.productId + ' is not exist!'
       );
       err.status = 404;
-      next(err);
+      return next(err);
     }
 
     // Check exist comment
@@ -47,7 +47,7 @@ module.exports.createComment = async (req, res, next) => {
     if (existComment) {
       const err = new Error('You can only comment once!');
       err.status = 400;
-      next(err);
+      return next(err);
     }
 
     // Check received product
@@ -67,7 +67,7 @@ module.exports.createComment = async (req, res, next) => {
         'You can only comment after received this product!'
       );
       err.status = 400;
-      next(err);
+      return next(err);
     }
 
     // Create new comment
@@ -109,7 +109,7 @@ module.exports.updateComment = async (req, res, next) => {
         'The product with id ' + req.params.productId + ' is not exist!'
       );
       err.status = 404;
-      next(err);
+      return next(err);
     }
 
     // Check exist comment
@@ -119,19 +119,19 @@ module.exports.updateComment = async (req, res, next) => {
     if (!existComment) {
       const err = new Error('Comment not found!');
       err.status = 404;
-      next(err);
+      return next(err);
     }
 
     if (existComment.product.toString() !== req.params.productId.toString()) {
       const err = new Error('Comment and product not match!');
       err.status = 400;
-      next(err);
+      return next(err);
     }
 
     if (existComment.author._id.toString() !== req.user._id.toString()) {
       const err = new Error('This comment is not yours!');
       err.status = 403;
-      next(err);
+      return next(err);
     }
 
     await commentsActions.updateComment(existComment._id, {
@@ -168,7 +168,7 @@ module.exports.deleteComment = async (req, res, next) => {
         'The product with id ' + req.params.productId + ' is not exist!'
       );
       err.status = 404;
-      next(err);
+      return next(err);
     }
 
     // Check exist comment
@@ -178,19 +178,19 @@ module.exports.deleteComment = async (req, res, next) => {
     if (!existComment) {
       const err = new Error('Comment not found!');
       err.status = 404;
-      next(err);
+      return next(err);
     }
 
     if (existComment.product.toString() !== req.params.productId.toString()) {
       const err = new Error('Comment and product not match!');
       err.status = 400;
-      next(err);
+      return next(err);
     }
 
     if (existComment.author._id.toString() !== req.user._id.toString()) {
       const err = new Error('This comment is not yours!');
       err.status = 403;
-      next(err);
+      return next(err);
     }
 
     // Delete comment
