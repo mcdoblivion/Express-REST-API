@@ -64,7 +64,7 @@ module.exports.getProductById = async (req, res, next) => {
         'The product with id ' + req.params.productId + ' is not exist!'
       );
       err.status = 404;
-      next(err);
+      return next(err);
     }
 
     return res.status(200).json({ success: true, data: product });
@@ -82,13 +82,13 @@ module.exports.updateProduct = async (req, res, next) => {
         'The product with id ' + req.params.productId + ' is not exist!'
       );
       err.status = 404;
-      next(err);
+      return next(err);
     }
 
     if (product.seller._id.toString() !== req.user._id.toString()) {
       const err = new Error('This product is not yours!');
       err.status = 403;
-      next(err);
+      return next(err);
     }
 
     await productsActions.updateProduct(req.params.productId, {
@@ -112,13 +112,13 @@ module.exports.deleteProduct = async (req, res, next) => {
         'The product with id ' + req.params.productId + ' is not exist!'
       );
       err.status = 404;
-      next(err);
+      return next(err);
     }
 
     if (product.seller._id.toString() !== req.user._id.toString()) {
       const err = new Error('This product is not yours!');
       err.status = 403;
-      next(err);
+      return next(err);
     }
 
     await productsActions.deleteProductById(product._id);

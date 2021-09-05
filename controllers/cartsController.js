@@ -12,20 +12,20 @@ module.exports.getCart = async (req, res, next) => {
 module.exports.createCart = async (req, res, next) => {
   try {
     // Update quantity if item already exist
-    const cartItem = await cartsActions.deleteCartItemByUserIdAndProductId(
+    const cartItem = await cartsActions.getCartItemByUserIdAndProductId(
       req.user._id,
       req.body.product
     );
 
     if (cartItem) {
-      await cartsActions.updateCartItem(cartItem._id, {
+      const updatedCartItem = await cartsActions.updateCartItem(cartItem._id, {
         quantity: cartItem.quantity + req.body.quantity,
       });
 
       return res.status(201).json({
         success: true,
         msg: 'Add to cart successfully!',
-        data: cartItem,
+        data: updatedCartItem,
       });
     }
 
@@ -83,7 +83,7 @@ module.exports.deleteProductFromCart = async (req, res, next) => {
     if (!deletedItem) {
       const err = new Error('Product is not in cart!');
       err.status = 404;
-      next(err);
+      return next(err);
     }
 
     return res

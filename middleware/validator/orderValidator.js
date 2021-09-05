@@ -14,7 +14,7 @@ module.exports.validateOrder = async (req, res, next) => {
   if (validateResult.error) {
     const err = new Error(validateResult.error);
     err.status = 400;
-    next(err);
+    return next(err);
   }
 
   for (const item of req.body) {
@@ -22,7 +22,7 @@ module.exports.validateOrder = async (req, res, next) => {
     if (product.numberInStock < item.quantity) {
       const err = new Error('Product quantity must less than number in stock!');
       err.status = 400;
-      next(err);
+      return next(err);
     }
   }
 
