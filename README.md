@@ -2,6 +2,8 @@
 
 [Link to React client app](https://github.com/mcdoblivion/merchize-ecommerce) (updating)
 
+[Client web app demo](https://merchize.cuongdm.tech)
+
 ## Latest update:
 
 #### Users routes:
