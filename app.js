@@ -34,9 +34,14 @@ connect.then(
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
+// create custom token to get real remote IP address
+logger.token('real-ip', (req, res) => {
+  return req.headers['x-forwarded-for'];
+})
+
 app.use(
   logger(
-    ':date[web] :remote-addr :method :url :status :response-time ms - :req[Content-Length]'
+    ':date[web] :real-ip :method :url :status :response-time ms - :req[Content-Length]'
   )
 );
 
@@ -47,7 +52,7 @@ var accessLogStream = fs.createWriteStream(path.join(__dirname, 'logger.log'), {
 
 app.use(
   logger(
-    ':date[web] :remote-addr :method :url :status :response-time ms - :req[Content-Length]',
+    ':date[web] :real-ip :method :url :status :response-time ms - :req[Content-Length]',
     { stream: accessLogStream }
   )
 );
